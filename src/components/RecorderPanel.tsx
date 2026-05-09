@@ -27,8 +27,8 @@ export function RecorderPanel({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const wasErroredRef = useRef(false);
-  const isCancelledRef = useRef(false);
+  const activeSessionRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   const detachRecorder = (recorder: MediaRecorder | null) => {
     if (!recorder) return;
@@ -38,8 +38,6 @@ export function RecorderPanel({
   };
 
   const resetRecordingSession = (recorder: MediaRecorder | null) => {
-    isCancelledRef.current = true;
-    wasErroredRef.current = false;
     detachRecorder(recorder);
     if (recorder && recorder.state !== "inactive") {
       recorder.stop();
@@ -49,11 +47,12 @@ export function RecorderPanel({
     stopMediaTracks();
   };
 
-  const stopMediaTracks = () => {
-    const stream = mediaStreamRef.current;
+  const stopMediaTracks = (stream: MediaStream | null = mediaStreamRef.current) => {
     if (!stream) return;
     stream.getTracks().forEach((track) => track.stop());
-    mediaStreamRef.current = null;
+    if (stream === mediaStreamRef.current) {
+      mediaStreamRef.current = null;
+    }
   };
 
   const statusMessage = STATUS_TEXT[state];
@@ -68,28 +67,40 @@ export function RecorderPanel({
       return;
     }
 
+    const sessionId = ++activeSessionRef.current;
     setState("requesting");
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!isMountedRef.current || activeSessionRef.current !== sessionId) {
+        stopMediaTracks(stream);
+        return;
+      }
+
       mediaStreamRef.current = stream;
 
       const preferredMimeType = getPreferredMimeType();
       const options = preferredMimeType ? { mimeType: preferredMimeType } : undefined;
       const recorder = new MediaRecorder(stream, options);
+      if (!isMountedRef.current || activeSessionRef.current !== sessionId) {
+        stopMediaTracks(stream);
+        return;
+      }
       recorderRef.current = recorder;
-      wasErroredRef.current = false;
-      isCancelledRef.current = false;
       chunksRef.current = [];
+      let hasErrored = false;
 
       recorder.ondataavailable = (event) => {
+        if (recorderRef.current !== recorder) {
+          return;
+        }
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
         }
       };
 
       recorder.onstop = () => {
-        if (isCancelledRef.current || wasErroredRef.current) {
+        if (recorderRef.current !== recorder || hasErrored) {
           return;
         }
         if (chunksRef.current.length === 0) {
@@ -105,19 +116,24 @@ export function RecorderPanel({
       };
 
       recorder.onerror = () => {
-        if (isCancelledRef.current) {
+        if (recorderRef.current !== recorder) {
           return;
         }
-        wasErroredRef.current = true;
+        hasErrored = true;
         setState("error");
         stopMediaTracks();
       };
 
       recorder.start();
-      setState("recording");
+      if (recorderRef.current === recorder && isMountedRef.current && activeSessionRef.current === sessionId) {
+        setState("recording");
+      } else {
+        stopMediaTracks(stream);
+      }
     } catch {
-      stopMediaTracks();
-      setState("error");
+      if (isMountedRef.current && activeSessionRef.current === sessionId) {
+        setState("error");
+      }
     }
   };
 
@@ -139,7 +155,13 @@ export function RecorderPanel({
     chunksRef.current = [];
   };
 
-  useEffect(() => () => resetRecordingSession(recorderRef.current), []);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      activeSessionRef.current += 1;
+      resetRecordingSession(recorderRef.current);
+    };
+  }, []);
 
   return (
     <section className="recorder-panel" aria-label="낭송 녹음 패널">
