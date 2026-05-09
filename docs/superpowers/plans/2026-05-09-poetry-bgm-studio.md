@@ -136,7 +136,7 @@ describe("Poetry & BGM Studio", () => {
 
 - [ ] **Step 4: Run test to verify it fails**
 
-Run: `npm test -- --run src/App.test.tsx`
+Run: `npm test -- src/App.test.tsx`
 
 Expected: FAIL because `src/App.tsx` has not rendered the required title and button yet.
 
@@ -183,7 +183,7 @@ createRoot(document.getElementById("root")!).render(
 
 - [ ] **Step 6: Run test to verify it passes**
 
-Run: `npm test -- --run src/App.test.tsx`
+Run: `npm test -- src/App.test.tsx`
 
 Expected: PASS.
 
@@ -239,7 +239,7 @@ describe("sound palette", () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm test -- --run src/lib/soundPalette.test.ts`
+Run: `npm test -- src/lib/soundPalette.test.ts`
 
 Expected: FAIL because `src/data/soundPalette.ts` does not exist.
 
@@ -333,7 +333,7 @@ Create `public/audio/README.md`:
 
 - [ ] **Step 6: Run tests**
 
-Run: `npm test -- --run src/lib/soundPalette.test.ts`
+Run: `npm test -- src/lib/soundPalette.test.ts`
 
 Expected: PASS.
 
@@ -482,7 +482,7 @@ The panel must expose a `role="status"` or `aria-live="polite"` region with thes
 
 - [ ] **Step 6: Run tests**
 
-Run: `npm test -- --run src/lib/audioSupport.test.ts src/App.test.tsx`
+Run: `npm test -- src/lib/audioSupport.test.ts src/App.test.tsx`
 
 Expected: PASS.
 
@@ -617,7 +617,7 @@ Create `ExportPanel.tsx`:
 
 - [ ] **Step 7: Run tests**
 
-Run: `npm test -- --run src/lib/download.test.ts src/lib/wav.test.ts`
+Run: `npm test -- src/lib/download.test.ts src/lib/wav.test.ts`
 
 Expected: PASS.
 
@@ -666,7 +666,7 @@ it("renders all four sound buttons", () => {
 
 - [ ] **Step 2: Run tests to verify failure**
 
-Run: `npm test -- --run src/App.test.tsx`
+Run: `npm test -- src/App.test.tsx`
 
 Expected: FAIL until the full studio UI exists.
 
