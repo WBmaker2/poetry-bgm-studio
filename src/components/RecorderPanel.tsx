@@ -70,8 +70,11 @@ export function RecorderPanel({
     const sessionId = ++activeSessionRef.current;
     setState("requesting");
 
+    let recorder: MediaRecorder | null = null;
+    let stream: MediaStream | null = null;
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       if (!isMountedRef.current || activeSessionRef.current !== sessionId) {
         stopMediaTracks(stream);
         return;
@@ -81,17 +84,18 @@ export function RecorderPanel({
 
       const preferredMimeType = getPreferredMimeType();
       const options = preferredMimeType ? { mimeType: preferredMimeType } : undefined;
-      const recorder = new MediaRecorder(stream, options);
+      recorder = new MediaRecorder(stream, options);
+      const activeRecorder = recorder;
       if (!isMountedRef.current || activeSessionRef.current !== sessionId) {
         stopMediaTracks(stream);
         return;
       }
-      recorderRef.current = recorder;
+      recorderRef.current = activeRecorder;
       chunksRef.current = [];
       let hasErrored = false;
 
-      recorder.ondataavailable = (event) => {
-        if (recorderRef.current !== recorder) {
+      activeRecorder.ondataavailable = (event) => {
+        if (recorderRef.current !== activeRecorder) {
           return;
         }
         if (event.data.size > 0) {
@@ -99,8 +103,8 @@ export function RecorderPanel({
         }
       };
 
-      recorder.onstop = () => {
-        if (recorderRef.current !== recorder || hasErrored) {
+      activeRecorder.onstop = () => {
+        if (recorderRef.current !== activeRecorder || hasErrored) {
           return;
         }
         if (chunksRef.current.length === 0) {
@@ -108,15 +112,15 @@ export function RecorderPanel({
           stopMediaTracks();
           return;
         }
-        const mimeType = recorder.mimeType || getPreferredMimeType() || "audio/webm";
+        const mimeType = activeRecorder.mimeType || getPreferredMimeType() || "audio/webm";
         const recorded = createRecordedVoice(chunksRef.current, mimeType);
         onRecordingComplete(recorded);
         setState("stopped");
         stopMediaTracks();
       };
 
-      recorder.onerror = () => {
-        if (recorderRef.current !== recorder) {
+      activeRecorder.onerror = () => {
+        if (recorderRef.current !== activeRecorder) {
           return;
         }
         hasErrored = true;
@@ -124,13 +128,18 @@ export function RecorderPanel({
         stopMediaTracks();
       };
 
-      recorder.start();
-      if (recorderRef.current === recorder && isMountedRef.current && activeSessionRef.current === sessionId) {
+      activeRecorder.start();
+      if (recorderRef.current === activeRecorder && isMountedRef.current && activeSessionRef.current === sessionId) {
         setState("recording");
       } else {
         stopMediaTracks(stream);
       }
     } catch {
+      if (recorderRef.current === recorder) {
+        resetRecordingSession(recorder);
+      } else if (stream) {
+        stopMediaTracks(stream);
+      }
       if (isMountedRef.current && activeSessionRef.current === sessionId) {
         setState("error");
       }

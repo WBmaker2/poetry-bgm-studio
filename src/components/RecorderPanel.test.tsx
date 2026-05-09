@@ -19,6 +19,7 @@ class FakeMediaStream {
 
 class FakeMediaRecorder {
   static instances: FakeMediaRecorder[] = [];
+  static shouldThrowOnStart = false;
 
   static reset() {
     FakeMediaRecorder.instances = [];
@@ -35,6 +36,9 @@ class FakeMediaRecorder {
   }
 
   start() {
+    if (FakeMediaRecorder.shouldThrowOnStart) {
+      throw new Error("MediaRecorder failed");
+    }
     this.state = "recording";
   }
 
@@ -69,13 +73,14 @@ vi.mock("../lib/audioSupport", () => ({
   })),
 }));
 
-const setupMediaMocks = () => {
+const setupMediaMocks = (userMediaValue: FakeMediaStream = new FakeMediaStream()) => {
   vi.stubGlobal("MediaRecorder", FakeMediaRecorder as unknown);
   vi.stubGlobal("navigator", {
     ...(globalThis.navigator as unknown as Record<string, unknown>),
     mediaDevices: { getUserMedia: getUserMediaMock },
   });
-  getUserMediaMock.mockResolvedValue(new FakeMediaStream());
+  getUserMediaMock.mockResolvedValue(userMediaValue);
+  return userMediaValue;
 };
 
 const createDeferredUserMedia = <T,>(): Deferred<T> => {
@@ -90,8 +95,35 @@ const createDeferredUserMedia = <T,>(): Deferred<T> => {
 describe("RecorderPanel", () => {
   afterEach(() => {
     FakeMediaRecorder.reset();
+    FakeMediaRecorder.shouldThrowOnStart = false;
     getUserMediaMock.mockReset();
     vi.unstubAllGlobals();
+  });
+
+  it("stops media tracks and reports microphone error when recorder start throws", async () => {
+    const stream = new FakeMediaStream();
+    FakeMediaRecorder.shouldThrowOnStart = true;
+    setupMediaMocks(stream);
+
+    const onRecordingComplete = vi.fn();
+    render(
+      <RecorderPanel
+        recordedVoice={null}
+        onRecordingComplete={onRecordingComplete}
+        onClearRecording={vi.fn()}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "낭송 녹음 시작" }));
+
+    await waitFor(() => {
+      expect(stream.getTracks().at(0)?.stop).toHaveBeenCalledTimes(1);
+      expect(stream.getTracks().at(1)?.stop).toHaveBeenCalledTimes(1);
+      expect(onRecordingComplete).not.toHaveBeenCalled();
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "마이크를 사용할 수 없습니다. 브라우저 권한을 확인해 주세요.",
+      );
+    });
   });
 
   it("does not save when recording errors and later stops", async () => {
