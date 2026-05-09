@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RecordedVoice } from "../lib/recorder";
 import type { SoundTrack } from "../data/soundPalette";
 
@@ -19,6 +19,7 @@ export function PreviewMixer({
   const trackAudioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
   const [isPreviewing, setIsPreviewing] = useState(false);
   const selectedTrackIdSet = useMemo(() => new Set(selectedTrackIds), [selectedTrackIds]);
+  const previousSelectedTrackIdSet = useRef<Set<SoundTrack["id"]>>(selectedTrackIdSet);
 
   const categorized = useMemo(() => {
     return {
@@ -50,7 +51,19 @@ export function PreviewMixer({
     });
   }, []);
 
-  const startPreview = useCallback(async () => {
+  const tryPlay = (audio: HTMLAudioElement) => {
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Browser autoplay restrictions are expected to block some immediate starts.
+    });
+  };
+
+  const stopPreview = useCallback(() => {
+    stopAllPreviews();
+    setIsPreviewing(false);
+  }, [stopAllPreviews]);
+
+  const startPreview = useCallback(() => {
     if (!recordedVoice || !voiceAudioRef.current) {
       return;
     }
@@ -66,17 +79,40 @@ export function PreviewMixer({
     });
 
     playTargets.forEach((audio) => {
-      audio.currentTime = 0;
-      audio.play().catch(() => {
-        // Browser autoplay restrictions are expected to block some immediate starts.
-      });
+      tryPlay(audio);
     });
   }, [recordedVoice, selectedTrackIdSet, stopAllPreviews]);
 
-  const stopPreview = useCallback(() => {
-    stopAllPreviews();
-    setIsPreviewing(false);
-  }, [stopAllPreviews]);
+  useEffect(() => {
+    if (!isPreviewing) {
+      previousSelectedTrackIdSet.current = selectedTrackIdSet;
+      return;
+    }
+
+    const nextSet = selectedTrackIdSet;
+    const prevSet = previousSelectedTrackIdSet.current;
+
+    prevSet.forEach((trackId) => {
+      if (!nextSet.has(trackId)) {
+        const trackAudio = trackAudioRefs.current[trackId];
+        if (trackAudio) {
+          trackAudio.pause();
+          trackAudio.currentTime = 0;
+        }
+      }
+    });
+
+    nextSet.forEach((trackId) => {
+      if (!prevSet.has(trackId)) {
+        const trackAudio = trackAudioRefs.current[trackId];
+        if (trackAudio) {
+          tryPlay(trackAudio);
+        }
+      }
+    });
+
+    previousSelectedTrackIdSet.current = nextSet;
+  }, [isPreviewing, selectedTrackIdSet]);
 
   const renderTrackButtons = (items: SoundTrack[]) =>
     items.map((track) => {
@@ -103,7 +139,7 @@ export function PreviewMixer({
           {isPreviewing ? "미리듣기 종료" : "사운드 미리듣기"}
         </button>
       </div>
-      <audio ref={voiceAudioRef} src={recordedVoice?.url} preload="none" />
+      <audio ref={voiceAudioRef} src={recordedVoice?.url} preload="none" onEnded={stopPreview} />
 
       <h3>배경음</h3>
       <div className="track-row">{renderTrackButtons(categorized.bgm)}</div>

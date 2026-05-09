@@ -10,6 +10,12 @@ export type SoundTrack = {
   defaultGain: number;
 };
 
+function trackSrc(fileName: string) {
+  const baseUrl = import.meta.env.BASE_URL.replace(/\/+$/, "");
+
+  return `${baseUrl}/audio/${fileName}`;
+}
+
 export const SOUND_TRACKS: SoundTrack[] = [
   {
     id: "rain",
@@ -17,7 +23,7 @@ export const SOUND_TRACKS: SoundTrack[] = [
     description: "차분하고 촉촉한 분위기의 시에 어울립니다.",
     category: "effect",
     iconLabel: "비",
-    src: "/audio/rain.wav",
+    src: trackSrc("rain.wav"),
     defaultGain: 0.22,
   },
   {
@@ -26,7 +32,7 @@ export const SOUND_TRACKS: SoundTrack[] = [
     description: "따뜻하거나 조용한 마음을 표현할 때 좋습니다.",
     category: "bgm",
     iconLabel: "피아노",
-    src: "/audio/piano.wav",
+    src: trackSrc("piano.wav"),
     defaultGain: 0.2,
   },
   {
@@ -35,7 +41,7 @@ export const SOUND_TRACKS: SoundTrack[] = [
     description: "바다, 여행, 그리움이 담긴 시에 어울립니다.",
     category: "effect",
     iconLabel: "파도",
-    src: "/audio/waves.wav",
+    src: trackSrc("waves.wav"),
     defaultGain: 0.24,
   },
   {
@@ -44,7 +50,7 @@ export const SOUND_TRACKS: SoundTrack[] = [
     description: "아침, 숲, 봄의 느낌을 살릴 때 좋습니다.",
     category: "effect",
     iconLabel: "새",
-    src: "/audio/birds.wav",
+    src: trackSrc("birds.wav"),
     defaultGain: 0.18,
   },
 ];

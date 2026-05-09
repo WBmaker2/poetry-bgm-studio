@@ -21,6 +21,9 @@ function writeAscii(view: DataView, offset: number, text: string) {
 
 function encodeSample(value: number) {
   const clamped = clampSample(value);
+  if (clamped === -1) {
+    return -32768;
+  }
   const scaled = Math.round(clamped * 32767);
 
   return Math.max(-32768, Math.min(32767, scaled));

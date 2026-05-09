@@ -4,6 +4,8 @@ import { renderAudioPostcard } from "../lib/mixer";
 import type { RecordedVoice } from "../lib/recorder";
 import type { SoundTrack } from "../data/soundPalette";
 
+const CLASSROOM_DURATION_CAP_SECONDS = 180;
+
 type ExportPanelProps = {
   recordedVoice: RecordedVoice | null;
   tracks: SoundTrack[];
@@ -23,6 +25,7 @@ export function ExportPanel({ recordedVoice, tracks }: ExportPanelProps) {
       const blob = await renderAudioPostcard({
         voiceBlob: recordedVoice.blob,
         tracks,
+        durationLimitSeconds: CLASSROOM_DURATION_CAP_SECONDS,
       });
 
       downloadBlob(blob, buildPostcardFilename());

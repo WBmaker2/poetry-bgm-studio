@@ -46,7 +46,7 @@ function normalizeDurationSeconds(seconds?: number) {
     return undefined;
   }
   if (!Number.isFinite(seconds) || seconds < 0) {
-    return 0;
+    throw new Error("재생 제한 시간이 유효하지 않습니다.");
   }
 
   return seconds;
@@ -66,10 +66,21 @@ export async function renderAudioPostcard(request: MixRequest): Promise<Blob> {
     const recordedVoiceBuffer = await decodeAudioBlob(decodeContext, voiceBlob);
     const selectedTracks = tracks ?? [];
     const maxDuration = normalizeDurationSeconds(durationLimitSeconds);
+    const hasPositiveMaxDuration = maxDuration === undefined || maxDuration > 0;
     const renderedDurationSeconds = Math.min(
       recordedVoiceBuffer.duration,
-      maxDuration === undefined ? Number.POSITIVE_INFINITY : maxDuration,
+      hasPositiveMaxDuration ? (maxDuration === undefined ? Number.POSITIVE_INFINITY : maxDuration) : 0,
     );
+
+    if (recordedVoiceBuffer.duration <= 0) {
+      throw new Error("녹음된 목소리 길이가 0초입니다.");
+    }
+    if (!hasPositiveMaxDuration) {
+      throw new Error("재생 제한 시간이 0초 이하거나 음수입니다.");
+    }
+    if (renderedDurationSeconds <= 0) {
+      throw new Error("엽서 재생 가능한 시간이 없습니다.");
+    }
 
     const trackBuffers = await Promise.all(selectedTracks.map((track) => loadTrackBuffer(decodeContext, track)));
 
@@ -78,7 +89,7 @@ export async function renderAudioPostcard(request: MixRequest): Promise<Blob> {
       recordedVoiceBuffer.numberOfChannels,
       ...trackBuffers.map((trackBuffer) => trackBuffer.numberOfChannels),
     );
-    const renderSampleCount = Math.max(0, Math.ceil(renderedDurationSeconds * sampleRate));
+    const renderSampleCount = Math.max(1, Math.ceil(renderedDurationSeconds * sampleRate));
     const offlineContext = new OfflineAudioContextCtor(
       maxChannels,
       renderSampleCount,

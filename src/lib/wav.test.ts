@@ -19,4 +19,11 @@ describe("encodeWav", () => {
     expect(view.getUint32(24, true)).toBe(44100);
     expect(view.getUint16(34, true)).toBe(16);
   });
+
+  it("encodes full negative scale as -32768", () => {
+    const wav = encodeWav([new Float32Array([-1])], 44100);
+    const view = new DataView(wav);
+
+    expect(view.getInt16(44, true)).toBe(-32768);
+  });
 });

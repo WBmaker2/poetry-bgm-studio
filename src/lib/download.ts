@@ -2,6 +2,8 @@ function pad(value: number) {
   return String(value).padStart(2, "0");
 }
 
+const REVOKE_URL_TIMEOUT_MS = 100;
+
 export function buildPostcardFilename(date = new Date()) {
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
@@ -18,6 +20,11 @@ export function downloadBlob(blob: Blob, filename: string) {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
+  document.body.appendChild(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(anchor);
+
+  window.setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, REVOKE_URL_TIMEOUT_MS);
 }
