@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -175,6 +176,27 @@ describe("RecorderPanel", () => {
 
     await waitFor(() => {
       expect(onRecordingComplete).not.toHaveBeenCalled();
+    });
+  });
+
+  it("keeps recording controls active after React StrictMode effect replay", async () => {
+    setupMediaMocks();
+
+    render(
+      <StrictMode>
+        <RecorderPanel
+          recordedVoice={null}
+          onRecordingComplete={vi.fn()}
+          onClearRecording={vi.fn()}
+        />
+      </StrictMode>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "낭송 녹음 시작" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "녹음 정지" })).toBeEnabled();
+      expect(screen.getByRole("status")).toHaveTextContent("녹음 중입니다. 시를 천천히 낭송해 보세요.");
     });
   });
 

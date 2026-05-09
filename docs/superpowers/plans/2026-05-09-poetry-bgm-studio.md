@@ -8,6 +8,8 @@
 
 **Tech Stack:** Vite, React, TypeScript, Vitest, Testing Library, Web Audio API, MediaRecorder API, CSS Modules 없이 단일 `src/styles.css`
 
+**Execution Status (2026-05-09):** Tasks 1~6 have been implemented on `feature/poetry-bgm-studio`. Current verification includes unit tests, production build, and local browser smoke for recording, sound selection, WAV export, and responsive overflow checks.
+
 ---
 
 ## Scope Decisions

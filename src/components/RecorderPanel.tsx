@@ -165,6 +165,8 @@ export function RecorderPanel({
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     return () => {
       isMountedRef.current = false;
       activeSessionRef.current += 1;
