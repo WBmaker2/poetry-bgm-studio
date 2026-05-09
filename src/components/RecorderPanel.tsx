@@ -56,10 +56,10 @@ export function RecorderPanel({
   };
 
   const statusMessage = STATUS_TEXT[state];
-  const canStart = support.canRecord && state !== "recording" && state !== "requesting";
+  const canStart = support.canRecord && !recordedVoice && state !== "recording" && state !== "requesting";
 
   const handleStart = async () => {
-    if (state === "recording" || state === "requesting") {
+    if (state === "recording" || state === "requesting" || Boolean(recordedVoice)) {
       return;
     }
     if (!support.canRecord) {

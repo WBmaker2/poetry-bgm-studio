@@ -26,8 +26,9 @@ Result: PASS
 
 ## Evidence
 
-- `npm test`: 9 test files and 28 tests passed after browser smoke fixes.
-- `npm run build`: production build passed after browser smoke fixes.
-- Playwright smoke downloaded `poetry-bgm-studio-20260509-194514.wav`.
+- `npm test`: 9 test files and 32 tests passed after final review fixes.
+- `npm run build`: production build passed after final review fixes.
+- Playwright smoke downloaded `poetry-bgm-studio-20260509-195313.wav`.
+- After recording, `낭송 녹음 시작` stayed disabled until `다시 녹음`, preventing accidental stale export.
 - Desktop viewport: `1440x900`, document width `1425`, overflow `false`.
 - Mobile viewport: `360x720`, document width `354`, overflow `false`.

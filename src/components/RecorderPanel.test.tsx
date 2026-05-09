@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RecorderPanel } from "./RecorderPanel";
+import type { RecordedVoice } from "../lib/recorder";
 
 type FakeTrack = { stop: ReturnType<typeof vi.fn> };
 
@@ -91,6 +92,13 @@ const createDeferredUserMedia = <T,>(): Deferred<T> => {
   });
 
   return { promise, resolve };
+};
+
+const recordedVoice: RecordedVoice = {
+  blob: new Blob(["audio"], { type: "audio/webm" }),
+  url: "blob:existing-recording",
+  mimeType: "audio/webm",
+  recordedAt: new Date("2026-05-09T00:00:00Z"),
 };
 
 describe("RecorderPanel", () => {
@@ -307,5 +315,22 @@ describe("RecorderPanel", () => {
       expect(screen.queryByText("녹음이 저장되었습니다. 배경음악을 골라 들어볼 수 있습니다.")).not.toBeInTheDocument();
       expect(screen.getByRole("status")).toHaveTextContent("");
     });
+  });
+
+  it("prevents starting another recording while a recording already exists", async () => {
+    setupMediaMocks();
+
+    render(
+      <RecorderPanel
+        recordedVoice={recordedVoice}
+        onRecordingComplete={vi.fn()}
+        onClearRecording={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "낭송 녹음 시작" }));
+
+    expect(getUserMediaMock).not.toHaveBeenCalled();
   });
 });

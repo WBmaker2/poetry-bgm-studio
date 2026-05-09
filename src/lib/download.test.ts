@@ -21,6 +21,7 @@ describe("downloadBlob", () => {
     const appendChildSpy = vi.spyOn(document.body, "appendChild");
     const removeChildSpy = vi.spyOn(document.body, "removeChild");
     const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
     const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:download-audio");
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {
       return undefined;
@@ -39,8 +40,31 @@ describe("downloadBlob", () => {
     expect(revokeSpy).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(150);
-
     expect(revokeSpy).toHaveBeenCalledWith("blob:download-audio");
+    expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("removes temporary anchor and revokes URL even when anchor click throws", () => {
+    vi.useFakeTimers();
+    const appendChildSpy = vi.spyOn(document.body, "appendChild");
+    const removeChildSpy = vi.spyOn(document.body, "removeChild");
+    const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
+    const createObjectURLSpy = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:download-audio");
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+
+    expect(() =>
+      downloadBlob(new Blob(["audio"], { type: "audio/wav" }), "poetry-bgm-studio.wav"),
+    ).toThrowError("blocked");
+    vi.advanceTimersByTime(150);
+
+    expect(appendChildSpy).toHaveBeenCalledTimes(1);
+    const appendedAnchor = appendChildSpy.mock.calls.at(0)?.[0];
+    expect(removeChildSpy).toHaveBeenCalledWith(appendedAnchor);
+    expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(revokeSpy).toHaveBeenCalledWith("blob:download-audio");
   });
 });

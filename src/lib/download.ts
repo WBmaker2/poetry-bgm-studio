@@ -21,10 +21,18 @@ export function downloadBlob(blob: Blob, filename: string) {
   anchor.href = url;
   anchor.download = filename;
   document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-
-  window.setTimeout(() => {
+  const revokeObjectUrl = () => {
     URL.revokeObjectURL(url);
-  }, REVOKE_URL_TIMEOUT_MS);
+  };
+
+  try {
+    anchor.click();
+  } finally {
+    if (anchor.parentNode === document.body) {
+      document.body.removeChild(anchor);
+    } else if (anchor.parentNode) {
+      anchor.parentNode.removeChild(anchor);
+    }
+    window.setTimeout(revokeObjectUrl, REVOKE_URL_TIMEOUT_MS);
+  }
 }
