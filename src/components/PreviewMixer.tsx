@@ -18,6 +18,7 @@ export function PreviewMixer({
   const [isPreviewing, setIsPreviewing] = useState(false);
   const selectedTrackIdSet = useMemo(() => new Set(selectedTrackIds), [selectedTrackIds]);
   const previousSelectedTrackIdSet = useRef<Set<SoundTrack["id"]>>(selectedTrackIdSet);
+  const previousRecordedVoiceRef = useRef<RecordedVoice | null>(null);
 
   const registerTrackAudio = useCallback((trackId: string, element: HTMLAudioElement | null) => {
     if (element) {
@@ -104,6 +105,26 @@ export function PreviewMixer({
 
     previousSelectedTrackIdSet.current = nextSet;
   }, [isPreviewing, selectedTrackIdSet]);
+
+  useEffect(() => {
+    if (!isPreviewing) {
+      previousRecordedVoiceRef.current = recordedVoice;
+      return;
+    }
+
+    if (!recordedVoice) {
+      stopPreview();
+      return;
+    }
+
+    const previousRecordedVoice = previousRecordedVoiceRef.current;
+    if (previousRecordedVoice && previousRecordedVoice.url !== recordedVoice.url) {
+      stopPreview();
+      return;
+    }
+
+    previousRecordedVoiceRef.current = recordedVoice;
+  }, [isPreviewing, recordedVoice, stopPreview]);
 
   return (
     <section aria-labelledby="preview-mixer-title" className="preview-mixer">

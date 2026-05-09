@@ -70,7 +70,7 @@ export default function App() {
           만듭니다.
         </p>
         <p className="studio-privacy">
-          녹음 파일은 이 브라우저 안에서만 처리됩니다. 업로드 없이 즉시 저장하고 제출할 수 있습니다.
+          녹음 파일은 이 브라우저 안에서만 처리됩니다. 업로드 없이 오디오 파일로 저장해 공유할 수 있습니다.
         </p>
       </header>
 

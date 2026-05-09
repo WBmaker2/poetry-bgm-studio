@@ -151,4 +151,41 @@ describe("PreviewMixer", () => {
       expect(previewButton).toHaveTextContent("사운드 미리듣기");
     });
   });
+
+  it("stops preview and resets when recorded voice is removed", async () => {
+    const user = userEvent.setup();
+    const { container, rerender } = render(
+      <PreviewMixer
+        recordedVoice={recordedVoice}
+        tracks={TRACKS}
+        selectedTrackIds={["rain"]}
+      />,
+    );
+
+    const audios = Array.from(container.querySelectorAll("audio")) as HTMLAudioElement[];
+    const [voiceAudio] = audios;
+    const { pauseSpies } = prepareAudioSpies(audios);
+    const voicePauseSpy = pauseSpies[0];
+    const previewButton = container.querySelector(".preview-actions button") as HTMLButtonElement;
+
+    await ensurePreviewStarts(user, previewButton);
+
+    const previousVoicePauseCount = voicePauseSpy.mock.calls.length;
+
+    rerender(
+      <PreviewMixer
+        recordedVoice={null}
+        tracks={TRACKS}
+        selectedTrackIds={["rain"]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(previewButton).toHaveTextContent("사운드 미리듣기");
+      expect(voiceAudio.currentTime).toBe(0);
+      expect(voicePauseSpy.mock.calls.length).toBeGreaterThan(previousVoicePauseCount);
+    });
+
+    expect(previewButton).toBeDisabled();
+  });
 });
