@@ -4,7 +4,7 @@ import { downloadBlob } from "./download";
 
 describe("buildPostcardFilename", () => {
   it("uses a safe Korean classroom filename prefix with timestamp", () => {
-    const filename = buildPostcardFilename(new Date("2026-05-09T09:08:07+09:00"));
+    const filename = buildPostcardFilename(new Date(2026, 4, 9, 9, 8, 7));
 
     expect(filename).toBe("poetry-bgm-studio-20260509-090807.wav");
   });
