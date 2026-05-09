@@ -93,9 +93,6 @@ button {
   align-items: start;
 }
 
-.studio-main,
-.studio-support,
-.studio-bottom,
 .panel-card,
 .sound-palette,
 .preview-mixer,
@@ -298,8 +295,6 @@ button {
   }
 
   .studio-header,
-  .studio-main,
-  .studio-support,
   .studio-bottom > * {
     width: 100%;
   }
