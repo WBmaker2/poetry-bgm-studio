@@ -1,4 +1,7 @@
 type AudioSupportTarget = {
+  navigator?: {
+    mediaDevices?: { getUserMedia?: unknown };
+  };
   mediaDevices?: { getUserMedia?: unknown };
   MediaRecorder?: unknown;
   AudioContext?: unknown;
@@ -7,14 +10,23 @@ type AudioSupportTarget = {
   webkitOfflineAudioContext?: unknown;
 };
 
-export function getAudioSupport(target: AudioSupportTarget = globalThis as AudioSupportTarget) {
-  const hasGetUserMedia = typeof target.mediaDevices?.getUserMedia === "function";
-  const hasMediaRecorder = typeof target.MediaRecorder === "function";
-  const hasAudioContext =
-    typeof target.AudioContext === "function" || typeof target.webkitAudioContext === "function";
+export function getAudioSupport(target: AudioSupportTarget = {}) {
+  const globalTarget = globalThis as unknown as AudioSupportTarget;
+
+  const mediaDevices =
+    target.mediaDevices ?? target.navigator?.mediaDevices ?? globalTarget.navigator?.mediaDevices;
+  const mediaRecorder = target.MediaRecorder ?? globalTarget.MediaRecorder;
+  const audioContext = target.AudioContext ?? globalTarget.AudioContext;
+  const webkitAudioContext = target.webkitAudioContext ?? globalTarget.webkitAudioContext;
+  const offlineAudioContext = target.OfflineAudioContext ?? globalTarget.OfflineAudioContext;
+  const webkitOfflineAudioContext =
+    target.webkitOfflineAudioContext ?? globalTarget.webkitOfflineAudioContext;
+
+  const hasGetUserMedia = typeof mediaDevices?.getUserMedia === "function";
+  const hasMediaRecorder = typeof mediaRecorder === "function";
+  const hasAudioContext = typeof audioContext === "function" || typeof webkitAudioContext === "function";
   const hasOfflineAudioContext =
-    typeof target.OfflineAudioContext === "function" ||
-    typeof target.webkitOfflineAudioContext === "function";
+    typeof offlineAudioContext === "function" || typeof webkitOfflineAudioContext === "function";
 
   const missing = [
     !hasGetUserMedia && "마이크 권한 API",
