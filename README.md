@@ -28,6 +28,10 @@ npm run build
 
 브라우저 수동 확인 항목은 [docs/qa/browser-smoke.md](docs/qa/browser-smoke.md)에 정리되어 있습니다.
 
+## 배포
+
+GitHub Pages 배포는 `.github/workflows/deploy-pages.yml`에서 실행됩니다. `main` 브랜치에 푸시하면 테스트와 빌드를 거쳐 `https://wbmaker2.github.io/poetry-bgm-studio/`로 배포됩니다.
+
 ## 개인정보와 저장 방식
 
 녹음과 오디오 믹싱은 모두 학생의 브라우저 안에서 처리됩니다. 서버 업로드, 계정, 클라우드 저장소를 사용하지 않으며, 저장 버튼을 누르면 현재 기기에서 WAV 파일로 다운로드됩니다.
@@ -48,4 +52,3 @@ npm run build
 - Chrome, Edge, Safari처럼 `MediaRecorder`, `AudioContext`, `OfflineAudioContext`를 지원하는 최신 브라우저를 권장합니다.
 - 마이크 권한은 보안 정책상 HTTPS 또는 `localhost`에서 가장 안정적으로 동작합니다.
 - 수업 전 교사용 기기에서 실제 마이크 권한 팝업과 저장 다운로드 위치를 한 번 확인해 주세요.
-
