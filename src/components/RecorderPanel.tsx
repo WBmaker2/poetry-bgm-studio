@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createRecordedVoice, getPreferredMimeType, type RecordedVoice, type RecorderState } from "../lib/recorder";
 import { getAudioSupport } from "../lib/audioSupport";
 
@@ -21,12 +21,33 @@ export function RecorderPanel({
   onRecordingComplete,
   onClearRecording,
 }: RecorderPanelProps) {
-  const support = getAudioSupport();
+  const support = useMemo(() => getAudioSupport(), []);
   const [state, setState] = useState<RecorderState>(support.canRecord ? "idle" : "error");
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wasErroredRef = useRef(false);
+  const isCancelledRef = useRef(false);
+
+  const detachRecorder = (recorder: MediaRecorder | null) => {
+    if (!recorder) return;
+    recorder.ondataavailable = null;
+    recorder.onstop = null;
+    recorder.onerror = null;
+  };
+
+  const resetRecordingSession = (recorder: MediaRecorder | null) => {
+    isCancelledRef.current = true;
+    wasErroredRef.current = false;
+    detachRecorder(recorder);
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+    recorderRef.current = null;
+    chunksRef.current = [];
+    stopMediaTracks();
+  };
 
   const stopMediaTracks = () => {
     const stream = mediaStreamRef.current;
@@ -57,6 +78,8 @@ export function RecorderPanel({
       const options = preferredMimeType ? { mimeType: preferredMimeType } : undefined;
       const recorder = new MediaRecorder(stream, options);
       recorderRef.current = recorder;
+      wasErroredRef.current = false;
+      isCancelledRef.current = false;
       chunksRef.current = [];
 
       recorder.ondataavailable = (event) => {
@@ -66,6 +89,14 @@ export function RecorderPanel({
       };
 
       recorder.onstop = () => {
+        if (isCancelledRef.current || wasErroredRef.current) {
+          return;
+        }
+        if (chunksRef.current.length === 0) {
+          setState("idle");
+          stopMediaTracks();
+          return;
+        }
         const mimeType = recorder.mimeType || getPreferredMimeType() || "audio/webm";
         const recorded = createRecordedVoice(chunksRef.current, mimeType);
         onRecordingComplete(recorded);
@@ -74,6 +105,10 @@ export function RecorderPanel({
       };
 
       recorder.onerror = () => {
+        if (isCancelledRef.current) {
+          return;
+        }
+        wasErroredRef.current = true;
         setState("error");
         stopMediaTracks();
       };
@@ -104,7 +139,7 @@ export function RecorderPanel({
     chunksRef.current = [];
   };
 
-  useEffect(() => () => stopMediaTracks(), []);
+  useEffect(() => () => resetRecordingSession(recorderRef.current), []);
 
   return (
     <section className="recorder-panel" aria-label="낭송 녹음 패널">

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./styles.css";
 import { type RecordedVoice } from "./lib/recorder";
 import { RecorderPanel } from "./components/RecorderPanel";
@@ -23,6 +23,14 @@ export default function App() {
       return null;
     });
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (recordedVoice) {
+        URL.revokeObjectURL(recordedVoice.url);
+      }
+    };
+  }, [recordedVoice]);
 
   return (
     <main className="studio-shell">
