@@ -36,8 +36,14 @@ export function ExportPanel({ recordedVoice, tracks }: ExportPanelProps) {
   }, [recordedVoice, tracks]);
 
   return (
-    <section className="export-panel" aria-label="오디오 엽서 저장">
-      <button type="button" onClick={handleExport} disabled={!canExport || status === "building"}>
+    <section className="export-panel panel-card" aria-labelledby="export-title">
+      <h2 id="export-title">오디오 엽서 저장</h2>
+      <button
+        type="button"
+        className="studio-action"
+        onClick={handleExport}
+        disabled={!canExport || status === "building"}
+      >
         오디오 엽서 저장
       </button>
       <div role="status" aria-live="polite" className="export-status">

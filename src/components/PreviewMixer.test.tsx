@@ -67,13 +67,11 @@ describe("PreviewMixer", () => {
 
   it("stops all selected track previews when voice playback ends", async () => {
     const user = userEvent.setup();
-    const onToggleTrack = vi.fn();
     const { container } = render(
       <PreviewMixer
         recordedVoice={recordedVoice}
         tracks={TRACKS}
         selectedTrackIds={["rain"]}
-        onToggleTrack={onToggleTrack}
       />,
     );
 
@@ -105,13 +103,11 @@ describe("PreviewMixer", () => {
 
   it("syncs preview tracks when selection changes during preview", async () => {
     const user = userEvent.setup();
-    const onToggleTrack = vi.fn();
     const { container, rerender } = render(
       <PreviewMixer
         recordedVoice={recordedVoice}
         tracks={TRACKS}
         selectedTrackIds={["rain"]}
-        onToggleTrack={onToggleTrack}
       />,
     );
 
@@ -137,7 +133,6 @@ describe("PreviewMixer", () => {
         recordedVoice={recordedVoice}
         tracks={TRACKS}
         selectedTrackIds={["piano"]}
-        onToggleTrack={onToggleTrack}
       />,
     );
 

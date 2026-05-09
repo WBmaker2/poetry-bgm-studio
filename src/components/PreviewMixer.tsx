@@ -6,27 +6,18 @@ type PreviewMixerProps = {
   recordedVoice: RecordedVoice | null;
   tracks: SoundTrack[];
   selectedTrackIds: SoundTrack["id"][];
-  onToggleTrack: (trackId: SoundTrack["id"]) => void;
 };
 
 export function PreviewMixer({
   recordedVoice,
   tracks,
   selectedTrackIds,
-  onToggleTrack,
 }: PreviewMixerProps) {
   const voiceAudioRef = useRef<HTMLAudioElement | null>(null);
   const trackAudioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
   const [isPreviewing, setIsPreviewing] = useState(false);
   const selectedTrackIdSet = useMemo(() => new Set(selectedTrackIds), [selectedTrackIds]);
   const previousSelectedTrackIdSet = useRef<Set<SoundTrack["id"]>>(selectedTrackIdSet);
-
-  const categorized = useMemo(() => {
-    return {
-      bgm: tracks.filter((track) => track.category === "bgm"),
-      effect: tracks.filter((track) => track.category === "effect"),
-    };
-  }, [tracks]);
 
   const registerTrackAudio = useCallback((trackId: string, element: HTMLAudioElement | null) => {
     if (element) {
@@ -114,39 +105,26 @@ export function PreviewMixer({
     previousSelectedTrackIdSet.current = nextSet;
   }, [isPreviewing, selectedTrackIdSet]);
 
-  const renderTrackButtons = (items: SoundTrack[]) =>
-    items.map((track) => {
-      const isActive = selectedTrackIdSet.has(track.id);
-      return (
-        <button
-          key={track.id}
-          type="button"
-          aria-pressed={isActive}
-          className={isActive ? "track-button active" : "track-button"}
-          onClick={() => onToggleTrack(track.id)}
-        >
-          {track.iconLabel} {track.label}
-        </button>
-      );
-    });
-
   return (
-    <section aria-label="사운드 미리듣기">
-      <h2>사운드 미리듣기</h2>
-      <h3>목소리</h3>
+    <section aria-labelledby="preview-mixer-title" className="preview-mixer">
+      <h2 id="preview-mixer-title">사운드 미리듣기</h2>
+      <p>목소리와 선택한 사운드를 함께 들어보고 바로 저장해 보세요.</p>
       <div className="preview-actions">
-        <button type="button" onClick={isPreviewing ? stopPreview : startPreview} disabled={!recordedVoice}>
+        <button
+          type="button"
+          className="studio-action"
+          onClick={isPreviewing ? stopPreview : startPreview}
+          disabled={!recordedVoice}
+        >
           {isPreviewing ? "미리듣기 종료" : "사운드 미리듣기"}
         </button>
       </div>
       <audio ref={voiceAudioRef} src={recordedVoice?.url} preload="none" onEnded={stopPreview} />
-
-      <h3>배경음</h3>
-      <div className="track-row">{renderTrackButtons(categorized.bgm)}</div>
-
-      <h3>효과음</h3>
-      <div className="track-row">{renderTrackButtons(categorized.effect)}</div>
-
+      <p className="preview-hint" role="status" aria-live="polite">
+        {selectedTrackIdSet.size > 0
+          ? `현재 ${selectedTrackIdSet.size}개 사운드가 선택되어 있습니다.`
+          : "아직 사운드가 선택되지 않았습니다."}
+      </p>
       {tracks.map((track) => (
         <audio
           key={`preview-${track.id}`}

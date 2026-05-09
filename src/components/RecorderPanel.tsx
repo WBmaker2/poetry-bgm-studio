@@ -173,21 +173,27 @@ export function RecorderPanel({
   }, []);
 
   return (
-    <section className="recorder-panel" aria-label="낭송 녹음 패널">
+    <section className="recorder-panel panel-card" aria-labelledby="recorder-title">
+      <h2 id="recorder-title">녹음 패널</h2>
       <div className="recorder-actions">
-        <button type="button" className="primary-action" disabled={!canStart} onClick={handleStart}>
+        <button
+          type="button"
+          className="studio-action primary"
+          disabled={!canStart}
+          onClick={handleStart}
+        >
           낭송 녹음 시작
         </button>
 
-        <button type="button" onClick={handleStop} disabled={state !== "recording"}>
+        <button type="button" className="studio-action" onClick={handleStop} disabled={state !== "recording"}>
           녹음 정지
         </button>
 
-        <button type="button" onClick={handlePlay} disabled={!recordedVoice}>
+        <button type="button" className="studio-action" onClick={handlePlay} disabled={!recordedVoice}>
           내 목소리 들어보기
         </button>
 
-        <button type="button" onClick={handleReset} disabled={!recordedVoice}>
+        <button type="button" className="studio-action" onClick={handleReset} disabled={!recordedVoice}>
           다시 녹음
         </button>
       </div>

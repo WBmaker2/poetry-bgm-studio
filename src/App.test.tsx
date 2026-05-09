@@ -41,6 +41,25 @@ describe("Poetry & BGM Studio", () => {
     expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeInTheDocument();
   });
 
+  it("shows curriculum standards and local privacy note", () => {
+    render(<App />);
+
+    expect(screen.getByText("[4국05-01]")).toBeInTheDocument();
+    expect(screen.getByText("[4음01-01]")).toBeInTheDocument();
+    expect(
+      screen.getByText(/녹음 파일은 이 브라우저 안에서만 처리됩니다/),
+    ).toBeInTheDocument();
+  });
+
+  it("renders all four sound buttons", () => {
+    render(<App />);
+
+    expect(screen.getByRole("button", { name: /빗소리/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /잔잔한 피아노/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /파도 소리/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /새소리/ })).toBeInTheDocument();
+  });
+
   it("revokes the latest object URL when App unmounts", async () => {
     const user = userEvent.setup();
     const revokeSpy = vi.spyOn(URL, "revokeObjectURL");
