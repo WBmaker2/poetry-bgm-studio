@@ -14,6 +14,7 @@ export default function App() {
   const [poemTitle, setPoemTitle] = useState("이번 주 동시");
   const [selectedTrackIds, setSelectedTrackIds] = useState<SoundTrack["id"][]>([]);
   const [isMicrophoneCheckActive, setIsMicrophoneCheckActive] = useState(false);
+  const [isRecorderBusy, setIsRecorderBusy] = useState(false);
 
   const selectedTracks = useMemo(
     () => SOUND_TRACKS.filter((track) => selectedTrackIds.includes(track.id)),
@@ -93,12 +94,16 @@ export default function App() {
             onRecordingComplete={handleRecordingComplete}
             onClearRecording={handleClearRecording}
             isMicrophoneCheckActive={isMicrophoneCheckActive}
+            onBusyChange={setIsRecorderBusy}
           />
         </section>
 
         <aside className="studio-support" aria-labelledby="studio-support-title">
           <h2 id="studio-support-title">수업 안내</h2>
-          <MicrophoneCheckPanel onBusyChange={setIsMicrophoneCheckActive} />
+          <MicrophoneCheckPanel
+            onBusyChange={setIsMicrophoneCheckActive}
+            isRecorderBusy={isRecorderBusy}
+          />
 
           <section
             className="support-card"

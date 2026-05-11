@@ -7,6 +7,7 @@ type RecorderPanelProps = {
   onRecordingComplete: (voice: RecordedVoice) => void;
   onClearRecording: () => void;
   isMicrophoneCheckActive?: boolean;
+  onBusyChange?: (isBusy: boolean) => void;
 };
 
 const STATUS_TEXT: Record<RecorderState, string> = {
@@ -22,6 +23,7 @@ export function RecorderPanel({
   onRecordingComplete,
   onClearRecording,
   isMicrophoneCheckActive = false,
+  onBusyChange,
 }: RecorderPanelProps) {
   const support = useMemo(() => getAudioSupport(), []);
   const [state, setState] = useState<RecorderState>(support.canRecord ? "idle" : "error");
@@ -58,12 +60,21 @@ export function RecorderPanel({
   };
 
   const statusMessage = STATUS_TEXT[state];
+  const isBusy = state === "requesting" || state === "recording";
   const canStart =
     support.canRecord &&
     !recordedVoice &&
     state !== "recording" &&
     state !== "requesting" &&
     !isMicrophoneCheckActive;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+
+    return () => {
+      onBusyChange?.(false);
+    };
+  }, [isBusy, onBusyChange]);
 
   const handleStart = async () => {
     if (state === "recording" || state === "requesting" || Boolean(recordedVoice)) {
@@ -182,7 +193,7 @@ export function RecorderPanel({
   }, []);
 
   return (
-    <section className="recorder-panel panel-card" aria-labelledby="recorder-title">
+      <section className="recorder-panel panel-card" aria-labelledby="recorder-title">
       <h2 id="recorder-title">녹음 패널</h2>
       <div className="recorder-actions">
         <button

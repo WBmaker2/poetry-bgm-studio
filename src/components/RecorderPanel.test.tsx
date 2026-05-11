@@ -1,4 +1,5 @@
 import { StrictMode } from "react";
+import { act } from "react-dom/test-utils";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -332,5 +333,38 @@ describe("RecorderPanel", () => {
     await userEvent.click(screen.getByRole("button", { name: "낭송 녹음 시작" }));
 
     expect(getUserMediaMock).not.toHaveBeenCalled();
+  });
+
+  it("reports busy state while recording and clears it on completion", async () => {
+    setupMediaMocks();
+
+    const onBusyChange = vi.fn();
+    render(
+      <RecorderPanel
+        recordedVoice={null}
+        onRecordingComplete={vi.fn()}
+        onClearRecording={vi.fn()}
+        onBusyChange={onBusyChange}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "낭송 녹음 시작" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "녹음 정지" })).toBeEnabled();
+      expect(onBusyChange).toHaveBeenCalledWith(true);
+    });
+
+    const recorder = FakeMediaRecorder.instances.at(-1);
+    expect(recorder).toBeDefined();
+    act(() => {
+      recorder?.emitData();
+      recorder?.stop();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "녹음 정지" })).toBeDisabled();
+      expect(onBusyChange).toHaveBeenLastCalledWith(false);
+    });
   });
 });

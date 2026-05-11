@@ -114,6 +114,16 @@ describe("MicrophoneCheckPanel", () => {
     expect(pendingStream.getTracks().at(0)?.stop).not.toHaveBeenCalled();
   });
 
+  it("메인 녹음이 바쁠 때 마이크 테스트가 비활성화됩니다", async () => {
+    render(<MicrophoneCheckPanel isRecorderBusy />);
+
+    const button = screen.getByRole("button", { name: "마이크 테스트" });
+    expect(button).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "낭송 녹음이 요청 중이거나 진행 중입니다. 마이크 테스트는 잠시 비활성화됩니다.",
+    );
+  });
+
   it("테스트 성공 시 결과를 표시하고 미디어 트랙을 정지한다", async () => {
     const stream = setupMediaMocks();
     const user = userEvent.setup();

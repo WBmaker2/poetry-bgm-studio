@@ -16,9 +16,10 @@ const STATUS_TEXT: Record<Exclude<CheckStatus, "unsupported">, string> = {
 
 type MicrophoneCheckPanelProps = {
   onBusyChange?: (isBusy: boolean) => void;
+  isRecorderBusy?: boolean;
 };
 
-export function MicrophoneCheckPanel({ onBusyChange }: MicrophoneCheckPanelProps) {
+export function MicrophoneCheckPanel({ onBusyChange, isRecorderBusy = false }: MicrophoneCheckPanelProps) {
   const support = useMemo(() => getAudioSupport(), []);
   const [status, setStatus] = useState<CheckStatus>(support.canRecord ? "ready" : "unsupported");
   const unsupportedMessage =
@@ -27,6 +28,9 @@ export function MicrophoneCheckPanel({ onBusyChange }: MicrophoneCheckPanelProps
       : "마이크 점검을 지원하지 않습니다. 브라우저를 확인해 주세요.";
   const isTesting = status === "requesting" || status === "testing";
   const statusText = status === "unsupported" ? unsupportedMessage : STATUS_TEXT[status];
+  const recorderBusyText = "낭송 녹음이 요청 중이거나 진행 중입니다. 마이크 테스트는 잠시 비활성화됩니다.";
+  const isRecBusy = Boolean(isRecorderBusy);
+  const statusMessage = isRecBusy ? recorderBusyText : statusText;
   const isMountedRef = useRef(true);
   const activeTestRef = useRef(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -160,13 +164,15 @@ export function MicrophoneCheckPanel({ onBusyChange }: MicrophoneCheckPanelProps
       <button
         type="button"
         className="studio-action primary"
-        disabled={!support.canRecord || status === "requesting" || status === "testing"}
+        disabled={
+          !support.canRecord || status === "requesting" || status === "testing" || isRecBusy
+        }
         onClick={runMicrophoneCheck}
       >
         마이크 테스트
       </button>
       <div role="status" aria-live="polite" className="microphone-check-status">
-        {statusText}
+        {statusMessage}
       </div>
     </section>
   );

@@ -15,14 +15,19 @@ vi.mock("./lib/audioSupport", () => ({
 vi.mock("./components/RecorderPanel", () => ({
   RecorderPanel: ({
     isMicrophoneCheckActive,
+    onBusyChange,
     onRecordingComplete,
   }: {
     isMicrophoneCheckActive?: boolean;
+    onBusyChange?: (isBusy: boolean) => void;
     onRecordingComplete: (voice: RecordedVoice) => void;
   }) => (
     <div>
-      <button type="button" disabled={Boolean(isMicrophoneCheckActive)}>
+      <button type="button" disabled={Boolean(isMicrophoneCheckActive)} onClick={() => onBusyChange?.(true)}>
         낭송 녹음 시작
+      </button>
+      <button type="button" onClick={() => onBusyChange?.(false)}>
+        낭송 정지
       </button>
       <button
         type="button"
@@ -115,5 +120,13 @@ describe("Poetry & BGM Studio", () => {
 
     await user.click(screen.getByRole("button", { name: "마이크 테스트" }));
     expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeDisabled();
+  });
+
+  it("disables microphone test while main recording is active/requesting", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "낭송 녹음 시작" }));
+    expect(screen.getByRole("button", { name: "마이크 테스트" })).toBeDisabled();
   });
 });
