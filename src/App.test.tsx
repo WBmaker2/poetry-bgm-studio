@@ -51,6 +51,13 @@ describe("Poetry & BGM Studio", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows classroom-ready microphone test control", () => {
+    render(<App />);
+
+    expect(screen.getByRole("button", { name: "마이크 테스트" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeInTheDocument();
+  });
+
   it("renders all four sound buttons", () => {
     render(<App />);
 

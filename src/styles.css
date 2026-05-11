@@ -242,6 +242,7 @@ button {
 
 .preview-hint,
 .recorder-status,
+.microphone-check-status,
 .export-status {
   color: var(--muted);
   min-height: 1.3rem;

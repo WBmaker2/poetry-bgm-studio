@@ -3,6 +3,7 @@ import { ExportPanel } from "./components/ExportPanel";
 import { PreviewMixer } from "./components/PreviewMixer";
 import { SoundPalette } from "./components/SoundPalette";
 import { RecorderPanel } from "./components/RecorderPanel";
+import { MicrophoneCheckPanel } from "./components/MicrophoneCheckPanel";
 import { SOUND_TRACKS } from "./data/soundPalette";
 import { type RecordedVoice } from "./lib/recorder";
 import "./styles.css";
@@ -95,6 +96,8 @@ export default function App() {
 
         <aside className="studio-support" aria-labelledby="studio-support-title">
           <h2 id="studio-support-title">수업 안내</h2>
+          <MicrophoneCheckPanel />
+
           <section
             className="support-card"
             aria-labelledby="studio-standard-title"
