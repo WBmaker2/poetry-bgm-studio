@@ -4,7 +4,7 @@
 
 ## Goal
 
-배포와 HVC 등록이 끝난 `Poetry & BGM Studio`를 실제 수업 투입 직전 수준으로 다듬는다.  
+배포와 HVC 등록이 끝난 `Poetry & BGM Studio`를 실제 수업 투입 직전 수준으로 다듬는다.
 우선순위는 이전 추천안 그대로 `1 -> 3 -> 2 -> 4 -> 5` 순서로 진행한다.
 
 ## Context
@@ -122,4 +122,3 @@ Document the remaining GitHub Actions Node 20 annotation so it is not confused w
 - Run `git diff --check`.
 - Perform a public-ready browser smoke on the local or preview build if feasible.
 - Commit locally when all tasks and reviews pass.
-
