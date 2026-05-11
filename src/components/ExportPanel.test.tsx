@@ -177,6 +177,77 @@ describe("ExportPanel", () => {
     expect(downloadBlob).not.toHaveBeenCalled();
   });
 
+  it("invalidates a building export when poem title changes", async () => {
+    const user = userEvent.setup();
+    const { renderAudioPostcard } = await import("../lib/mixer");
+    const { downloadBlob } = await import("../lib/download");
+    const deferred = createDeferred<Blob>();
+
+    vi.mocked(renderAudioPostcard).mockReturnValue(deferred.promise);
+
+    const { rerender } = render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("오디오 엽서를 만들고 있습니다.");
+    });
+
+    rerender(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="한겨울의 길"
+        selectedTracks={[track]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("");
+    });
+
+    deferred.resolve(new Blob(["exported-audio"], { type: "audio/wav" }));
+    await Promise.resolve();
+    expect(downloadBlob).not.toHaveBeenCalled();
+  });
+
+  it("invalidates a building export when reflection changes", async () => {
+    const user = userEvent.setup();
+    const { renderAudioPostcard } = await import("../lib/mixer");
+    const { downloadBlob } = await import("../lib/download");
+    const deferred = createDeferred<Blob>();
+
+    vi.mocked(renderAudioPostcard).mockReturnValue(deferred.promise);
+
+    render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("오디오 엽서를 만들고 있습니다.");
+    });
+
+    await user.type(screen.getByRole("textbox", { name: "한 줄 성찰(교실 노트)" }), "교실 노트");
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("");
+    });
+
+    deferred.resolve(new Blob(["exported-audio"], { type: "audio/wav" }));
+    await Promise.resolve();
+    expect(downloadBlob).not.toHaveBeenCalled();
+  });
+
   it("resets status when poem title changes", async () => {
     const { renderAudioPostcard } = await import("../lib/mixer");
     vi.mocked(renderAudioPostcard).mockResolvedValue(new Blob(["export"], { type: "audio/wav" }));
