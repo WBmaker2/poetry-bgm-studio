@@ -34,7 +34,7 @@ npm run build
 ## 배포
 
 GitHub Pages 배포는 `.github/workflows/deploy-pages.yml`에서 실행됩니다. `main` 브랜치에 푸시하면 테스트와 빌드를 거쳐 `https://wbmaker2.github.io/poetry-bgm-studio/`로 배포됩니다.
-마지막 성공 런(`25661058576`)에서는 GitHub Actions 경고( Node.js 20 deprecation )가 남았으나, 워크플로우는 정상 배포를 완료했습니다.
+2026-05-11 확인된 성공 런(`25661058576`)에서는 GitHub Actions 경고(`Node.js 20 deprecation`)가 남았으나, 워크플로우는 정상 배포를 완료했습니다.
 이는 현재 운영 노트에 정리되어 있어 앱 오류와 구분됩니다: `docs/ops/github-actions-node20-warning.md`.
 
 ## 개인정보와 저장 방식
