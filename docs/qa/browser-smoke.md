@@ -32,3 +32,5 @@ Result: PASS
 - After recording, `낭송 녹음 시작` stayed disabled until `다시 녹음`, preventing accidental stale export.
 - Desktop viewport: `1440x900`, document width `1425`, overflow `false`.
 - Mobile viewport: `360x720`, document width `354`, overflow `false`.
+
+See also [public-page-qa.md](public-page-qa.md) for deployed GitHub Pages checks.

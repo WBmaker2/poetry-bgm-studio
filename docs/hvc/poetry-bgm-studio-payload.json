@@ -1,0 +1,11 @@
+{
+  "title": "감성 톡톡 동시 스튜디오",
+  "summary": "3~4학년 학생이 동시 낭송을 녹음하고 시의 분위기에 맞는 사운드를 골라 오디오 엽서로 저장하는 국어·음악 융합 웹앱",
+  "url": "https://wbmaker2.github.io/poetry-bgm-studio/",
+  "githubUrl": "https://github.com/WBmaker2/poetry-bgm-studio",
+  "tags": ["국어", "음악", "동시", "녹음", "오디오북"],
+  "subject": "국어 / 음악",
+  "grade": "초등 3~4학년",
+  "memo": "학생이 자신의 동시나 좋아하는 시를 낭송하고, 빗소리·잔잔한 피아노·파도 소리·새소리 중 어울리는 사운드를 선택해 감정을 입체적으로 표현합니다. 녹음과 믹싱은 브라우저 안에서 처리되며, 교사는 수업 가이드와 실기기 마이크 체크리스트를 활용해 수업 전 점검할 수 있습니다.",
+  "thumbnailPath": "docs/hvc/poetry-bgm-studio-thumbnail.png"
+}
