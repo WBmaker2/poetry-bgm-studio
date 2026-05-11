@@ -15,6 +15,16 @@ const track = {
   defaultGain: 0.22,
 };
 
+const track2 = {
+  id: "piano" as const,
+  label: "잔잔한 피아노",
+  description: "따뜻한 배경음에 잘 어울립니다.",
+  category: "bgm" as const,
+  iconLabel: "피아노",
+  src: "/audio/piano.wav",
+  defaultGain: 0.2,
+};
+
 const recordedVoice: RecordedVoice = {
   blob: new Blob(["audio"], { type: "audio/webm" }),
   url: "blob:voice",
@@ -111,18 +121,117 @@ describe("ExportPanel", () => {
     expect(screen.getByText("겨울 종달새")).toBeInTheDocument();
     expect(screen.getByText("선택 소리")).toBeInTheDocument();
     expect(screen.getByText("빗소리")).toBeInTheDocument();
+    expect(screen.getByText("이 메모는 화면에만 남고 WAV 파일에는 포함되지 않습니다.")).toBeInTheDocument();
     expect(
-      screen.getByLabelText("한 줄 성찰"),
+      screen.getByLabelText("한 줄 성찰(교실 노트)"),
     ).toHaveAttribute("placeholder", "수업에서 느낀 점을 한 줄로 적어보세요.");
     expect(screen.getByText(/저장 안내: 파일 형식 WAV/i)).toBeInTheDocument();
     expect(
       screen.getByText(/poetry-bgm-studio-YYYYMMDD-HHMMSS\.wav/),
     ).toBeInTheDocument();
 
-    await user.type(screen.getByRole("textbox", { name: "한 줄 성찰" }), "목소리 톤을 더 부드럽게 바꿨더라.");
-    expect(screen.getByRole("textbox", { name: "한 줄 성찰" })).toHaveValue(
+    await user.type(
+      screen.getByRole("textbox", { name: "한 줄 성찰(교실 노트)" }),
       "목소리 톤을 더 부드럽게 바꿨더라.",
     );
+    expect(screen.getByRole("textbox", { name: "한 줄 성찰(교실 노트)" })).toHaveValue(
+      "목소리 톤을 더 부드럽게 바꿨더라.",
+    );
+  });
+
+  it("invalidates a building export when selected tracks change", async () => {
+    const user = userEvent.setup();
+    const { renderAudioPostcard } = await import("../lib/mixer");
+    const { downloadBlob } = await import("../lib/download");
+    const deferred = createDeferred<Blob>();
+
+    vi.mocked(renderAudioPostcard).mockReturnValue(deferred.promise);
+
+    const { rerender } = render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("오디오 엽서를 만들고 있습니다.");
+    });
+
+    rerender(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track, track2]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("");
+    });
+
+    deferred.resolve(new Blob(["exported-audio"], { type: "audio/wav" }));
+    await Promise.resolve();
+    expect(downloadBlob).not.toHaveBeenCalled();
+  });
+
+  it("resets status when poem title changes", async () => {
+    const { renderAudioPostcard } = await import("../lib/mixer");
+    vi.mocked(renderAudioPostcard).mockResolvedValue(new Blob(["export"], { type: "audio/wav" }));
+
+    const { rerender } = render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("오디오 엽서 파일을 저장했습니다.");
+    });
+
+    rerender(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="밤하늘 노래"
+        selectedTracks={[track]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("");
+    });
+  });
+
+  it("resets success message when reflection changes", async () => {
+    const user = userEvent.setup();
+    const { renderAudioPostcard } = await import("../lib/mixer");
+    vi.mocked(renderAudioPostcard).mockResolvedValue(new Blob(["export"], { type: "audio/wav" }));
+
+    render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("오디오 엽서 파일을 저장했습니다.");
+    });
+
+    await user.type(screen.getByRole("textbox", { name: "한 줄 성찰(교실 노트)" }), "오늘 느낌은");
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("");
+    });
   });
 
   it("disables export and shows a clear browser support message without OfflineAudioContext", async () => {

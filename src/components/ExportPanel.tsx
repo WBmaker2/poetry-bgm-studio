@@ -29,7 +29,7 @@ export function ExportPanel({ recordedVoice, poemTitle, selectedTracks }: Export
     currentVoiceRef.current = recordedVoice;
     currentExportRef.current += 1;
     setStatus("idle");
-  }, [recordedVoice]);
+  }, [recordedVoice, selectedTracks, poemTitle, reflection]);
 
   const handleExport = useCallback(async () => {
     if (!recordedVoice || !support.canMixOffline) {
@@ -86,7 +86,7 @@ export function ExportPanel({ recordedVoice, poemTitle, selectedTracks }: Export
           )}
         </div>
         <label htmlFor="reflection-note" className="export-result-label">
-          한 줄 성찰
+          한 줄 성찰(교실 노트)
         </label>
         <textarea
           id="reflection-note"
@@ -97,6 +97,7 @@ export function ExportPanel({ recordedVoice, poemTitle, selectedTracks }: Export
           maxLength={120}
           placeholder="수업에서 느낀 점을 한 줄로 적어보세요."
         />
+        <p className="export-reflection-hint">이 메모는 화면에만 남고 WAV 파일에는 포함되지 않습니다.</p>
         <p className="export-format-hint">
           저장 안내: 파일 형식 WAV, 파일명은 poetry-bgm-studio-YYYYMMDD-HHMMSS.wav
         </p>
