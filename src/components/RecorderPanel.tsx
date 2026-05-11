@@ -6,6 +6,7 @@ type RecorderPanelProps = {
   recordedVoice: RecordedVoice | null;
   onRecordingComplete: (voice: RecordedVoice) => void;
   onClearRecording: () => void;
+  isMicrophoneCheckActive?: boolean;
 };
 
 const STATUS_TEXT: Record<RecorderState, string> = {
@@ -20,6 +21,7 @@ export function RecorderPanel({
   recordedVoice,
   onRecordingComplete,
   onClearRecording,
+  isMicrophoneCheckActive = false,
 }: RecorderPanelProps) {
   const support = useMemo(() => getAudioSupport(), []);
   const [state, setState] = useState<RecorderState>(support.canRecord ? "idle" : "error");
@@ -56,7 +58,12 @@ export function RecorderPanel({
   };
 
   const statusMessage = STATUS_TEXT[state];
-  const canStart = support.canRecord && !recordedVoice && state !== "recording" && state !== "requesting";
+  const canStart =
+    support.canRecord &&
+    !recordedVoice &&
+    state !== "recording" &&
+    state !== "requesting" &&
+    !isMicrophoneCheckActive;
 
   const handleStart = async () => {
     if (state === "recording" || state === "requesting" || Boolean(recordedVoice)) {

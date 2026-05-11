@@ -167,4 +167,63 @@ describe("MicrophoneCheckPanel", () => {
       expect(stream.getTracks().at(0)?.stop).toHaveBeenCalledTimes(1);
     });
   });
+
+  it("실제 recorder.onerror 이벤트가 발생하면 실패 상태가 된다", async () => {
+    const stream = setupMediaMocks();
+    const user = userEvent.setup();
+
+    render(<MicrophoneCheckPanel />);
+
+    await user.click(screen.getByRole("button", { name: "마이크 테스트" }));
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("마이크 경로를 테스트하고 있습니다. 0.5초간 말해 보세요.");
+    });
+
+    const recorder = FakeMediaRecorder.instances.at(-1);
+    expect(recorder).toBeDefined();
+    recorder?.emitError();
+
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("마이크 테스트에 실패했습니다. 브라우저 권한을 확인해 주세요.");
+      expect(stream.getTracks().at(0)?.stop).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("권한 대기 중 언마운트되면 스트림이 정리된다", async () => {
+    setupMediaMocks();
+    const user = userEvent.setup();
+    const deferred = createDeferred<FakeMediaStream>();
+    const pendingStream = new FakeMediaStream();
+    getUserMediaMock.mockReturnValue(deferred.promise);
+
+    const { unmount } = render(<MicrophoneCheckPanel />);
+
+    await user.click(screen.getByRole("button", { name: "마이크 테스트" }));
+    unmount();
+    deferred.resolve(pendingStream);
+
+    await waitFor(() => {
+      expect(pendingStream.getTracks().at(0)?.stop).toHaveBeenCalledTimes(1);
+      expect(pendingStream.getTracks().at(1)?.stop).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("테스트 중 언마운트되면 스트림이 정리된다", async () => {
+    const stream = setupMediaMocks();
+    const user = userEvent.setup();
+
+    const { unmount } = render(<MicrophoneCheckPanel />);
+
+    await user.click(screen.getByRole("button", { name: "마이크 테스트" }));
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent("마이크 경로를 테스트하고 있습니다. 0.5초간 말해 보세요.");
+    });
+
+    unmount();
+
+    await waitFor(() => {
+      expect(stream.getTracks().at(0)?.stop).toHaveBeenCalledTimes(1);
+      expect(stream.getTracks().at(1)?.stop).toHaveBeenCalledTimes(1);
+    });
+  });
 });

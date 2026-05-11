@@ -4,10 +4,26 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import type { RecordedVoice } from "./lib/recorder";
 
+vi.mock("./lib/audioSupport", () => ({
+  getAudioSupport: vi.fn(() => ({
+    canRecord: true,
+    canMixOffline: true,
+    missing: [],
+  })),
+}));
+
 vi.mock("./components/RecorderPanel", () => ({
-  RecorderPanel: ({ onRecordingComplete }: { onRecordingComplete: (voice: RecordedVoice) => void }) => (
+  RecorderPanel: ({
+    isMicrophoneCheckActive,
+    onRecordingComplete,
+  }: {
+    isMicrophoneCheckActive?: boolean;
+    onRecordingComplete: (voice: RecordedVoice) => void;
+  }) => (
     <div>
-      <button type="button">낭송 녹음 시작</button>
+      <button type="button" disabled={Boolean(isMicrophoneCheckActive)}>
+        낭송 녹음 시작
+      </button>
       <button
         type="button"
         onClick={() =>
@@ -28,6 +44,7 @@ vi.mock("./components/RecorderPanel", () => ({
 describe("Poetry & BGM Studio", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("renders the Korean classroom studio title and primary recording action", () => {
@@ -77,5 +94,26 @@ describe("Poetry & BGM Studio", () => {
     unmount();
 
     expect(revokeSpy).toHaveBeenCalledWith("blob:rec-a");
+  });
+
+  it("blocks main recording start while microphone precheck is requesting", async () => {
+    const pending = new Promise<MediaStream>(() => {});
+    vi.stubGlobal("MediaRecorder", class {
+      start() {
+        return;
+      }
+    });
+    vi.stubGlobal("navigator", {
+      ...(globalThis.navigator as unknown as Record<string, unknown>),
+      mediaDevices: {
+        getUserMedia: vi.fn(() => pending),
+      },
+    });
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "마이크 테스트" }));
+    expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeDisabled();
   });
 });

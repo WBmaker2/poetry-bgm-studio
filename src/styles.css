@@ -108,6 +108,7 @@ button {
 .studio-bottom h2,
 .sound-palette h2,
 .preview-mixer h2,
+.microphone-check h2,
 .export-panel h2,
 .recorder-panel h2 {
   font-size: 1.05rem;
@@ -165,6 +166,7 @@ button {
 .recorder-panel,
 .preview-mixer,
 .sound-palette,
+.microphone-check,
 .export-panel {
   display: grid;
   gap: 0.8rem;

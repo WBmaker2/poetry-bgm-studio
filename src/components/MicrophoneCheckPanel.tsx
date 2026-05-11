@@ -2,11 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getPreferredMimeType } from "../lib/recorder";
 import { getAudioSupport } from "../lib/audioSupport";
 
-type CheckStatus = "ready" | "requesting" | "testing" | "success" | "error";
+type CheckStatus = "ready" | "requesting" | "testing" | "success" | "error" | "unsupported";
 
 const CHECK_DURATION_MS = 500;
 
-const STATUS_TEXT: Record<CheckStatus, string> = {
+const STATUS_TEXT: Record<Exclude<CheckStatus, "unsupported">, string> = {
   ready: "마이크 테스트를 실행해 수업 전 점검을 마쳐 주세요.",
   requesting: "마이크 권한을 요청하고 있습니다.",
   testing: "마이크 경로를 테스트하고 있습니다. 0.5초간 말해 보세요.",
@@ -14,10 +14,19 @@ const STATUS_TEXT: Record<CheckStatus, string> = {
   error: "마이크 테스트에 실패했습니다. 브라우저 권한을 확인해 주세요.",
 };
 
-export function MicrophoneCheckPanel() {
+type MicrophoneCheckPanelProps = {
+  onBusyChange?: (isBusy: boolean) => void;
+};
+
+export function MicrophoneCheckPanel({ onBusyChange }: MicrophoneCheckPanelProps) {
   const support = useMemo(() => getAudioSupport(), []);
-  const [status, setStatus] = useState<CheckStatus>(support.canRecord ? "ready" : "error");
-  const statusText = STATUS_TEXT[status];
+  const [status, setStatus] = useState<CheckStatus>(support.canRecord ? "ready" : "unsupported");
+  const unsupportedMessage =
+    support.missing.length > 0
+      ? `마이크 점검을 지원하지 않습니다. (${support.missing.join(", ")})`
+      : "마이크 점검을 지원하지 않습니다. 브라우저를 확인해 주세요.";
+  const isTesting = status === "requesting" || status === "testing";
+  const statusText = status === "unsupported" ? unsupportedMessage : STATUS_TEXT[status];
   const isMountedRef = useRef(true);
   const activeTestRef = useRef(0);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -110,9 +119,11 @@ export function MicrophoneCheckPanel() {
 
       setStatus("testing");
       stopTimerRef.current = window.setTimeout(() => {
-        if (recorderRef.current === recorder && activeTestRef.current === testId && isMountedRef.current) {
-          recorder.stop();
+        const activeRecorder = recorderRef.current;
+        if (!activeRecorder || activeTestRef.current !== testId || !isMountedRef.current) {
+          return;
         }
+        activeRecorder.stop();
       }, CHECK_DURATION_MS);
     } catch {
       if (recorderRef.current === recorder && activeTestRef.current === testId) {
@@ -125,6 +136,13 @@ export function MicrophoneCheckPanel() {
       }
     }
   };
+
+  useEffect(() => {
+    onBusyChange?.(isTesting);
+    return () => {
+      onBusyChange?.(false);
+    };
+  }, [isTesting, onBusyChange]);
 
   useEffect(() => {
     isMountedRef.current = true;
