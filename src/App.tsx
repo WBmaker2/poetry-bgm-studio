@@ -16,7 +16,12 @@ export default function App() {
   const [isMicrophoneCheckActive, setIsMicrophoneCheckActive] = useState(false);
   const [isRecorderBusy, setIsRecorderBusy] = useState(false);
   const normalizedTitle = poemTitle.trim();
-
+  const stepSequence = [
+    { id: 1, label: "제목 입력" },
+    { id: 2, label: "녹음" },
+    { id: 3, label: "소리 선택" },
+    { id: 4, label: "미리듣기/저장" },
+  ];
   const currentStep = !normalizedTitle
     ? 1
     : recordedVoice
@@ -24,12 +29,9 @@ export default function App() {
         ? 4
         : 3
       : 2;
-  const stepSequence = [
-    { id: 1, label: "제목 입력" },
-    { id: 2, label: "녹음" },
-    { id: 3, label: "소리 선택" },
-    { id: 4, label: "미리듣기/저장" },
-  ];
+
+  const currentStepDefinition = stepSequence.find((step) => step.id === currentStep);
+  const currentStepText = currentStepDefinition?.label ?? "단계 준비";
 
   const selectedTracks = useMemo(
     () => SOUND_TRACKS.filter((track) => selectedTrackIds.includes(track.id)),
@@ -90,7 +92,7 @@ export default function App() {
         <p className="studio-privacy">
           녹음 파일은 이 브라우저 안에서만 처리됩니다. 업로드 없이 오디오 파일로 저장해 공유할 수 있습니다.
         </p>
-        <nav className="classroom-flow" aria-label="수업 모드 단계">
+        <section className="classroom-flow" aria-label="수업 모드 단계">
           <ol className="classroom-step-list">
             {stepSequence.map(({ id, label }) => {
               const isCurrent = currentStep === id;
@@ -110,9 +112,9 @@ export default function App() {
             })}
           </ol>
           <p className="classroom-step-hint sr-only" role="status" aria-live="polite">
-            현재 단계: {currentStep}단계 {currentStep === 1 ? "제목 입력" : currentStep === 2 ? "녹음" : currentStep === 3 ? "소리 선택" : "미리듣기/저장"}
+            현재 단계: {currentStep}단계 {currentStepText}
           </p>
-        </nav>
+        </section>
       </header>
 
       <div className="studio-layout">
@@ -174,7 +176,7 @@ export default function App() {
             )}
           </section>
 
-          <section className="studio-status" role="status" aria-live="polite">
+          <section className="studio-status">
             {poemTitle ? <p>현재 동시 제목: {poemTitle}</p> : <p>동시 제목을 입력해 주세요.</p>}
           </section>
         </aside>
