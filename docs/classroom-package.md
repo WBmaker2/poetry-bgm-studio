@@ -26,7 +26,7 @@
 
 수업 시작 전 5분 내 아래를 빠르게 확인하세요.
 
-1. [실기기 마이크 점검 체크리스트](docs/qa/real-device-microphone-check.md) 수행(Chrome/Edge/Safari/Chromebook)
+1. [실기기 마이크 점검 체크리스트](qa/real-device-microphone-check.md) 수행(Chrome/Edge/Safari/Chromebook)
 2. 앱 URL이 HTTPS인지 확인: https://wbmaker2.github.io/poetry-bgm-studio/
 3. `낭송 녹음 시작`으로 3~5초 읽기 → `내 목소리 들어보기` 재생 확인
 4. 사운드 팔레트 버튼 1개 이상 선택 후 `오디오 엽서 저장`이 되는지 확인
@@ -96,4 +96,4 @@
 
 ## 관련 문서
 - [교사용 가이드](docs/teacher-guide.md)
-- [실기기 마이크 점검 체크리스트](docs/qa/real-device-microphone-check.md)
+- [실기기 마이크 점검 체크리스트](qa/real-device-microphone-check.md)
