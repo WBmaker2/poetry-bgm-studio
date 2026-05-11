@@ -295,6 +295,60 @@ button {
   min-height: 1.3rem;
 }
 
+.export-result-card {
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.export-result-title {
+  font-size: 0.98rem;
+}
+
+.export-result-line,
+.export-result-field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.export-result-label {
+  font-size: 0.84rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.export-result-list {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--text);
+  display: grid;
+  gap: 0.2rem;
+}
+
+.export-result-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.export-reflection {
+  width: 100%;
+  min-height: 2.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem;
+  font: inherit;
+  resize: none;
+}
+
+.export-format-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .recorder-panel audio,
 .preview-mixer audio {
   width: 100%;

@@ -9,12 +9,14 @@ const CLASSROOM_DURATION_CAP_SECONDS = 180;
 
 type ExportPanelProps = {
   recordedVoice: RecordedVoice | null;
-  tracks: SoundTrack[];
+  poemTitle: string;
+  selectedTracks: SoundTrack[];
 };
 
-export function ExportPanel({ recordedVoice, tracks }: ExportPanelProps) {
+export function ExportPanel({ recordedVoice, poemTitle, selectedTracks }: ExportPanelProps) {
   const support = useMemo(() => getAudioSupport(), []);
   const [status, setStatus] = useState<"idle" | "building" | "success" | "error">("idle");
+  const [reflection, setReflection] = useState("");
   const canExport = Boolean(recordedVoice) && support.canMixOffline;
   const unsupportedMessage =
     support.missing.length > 0
@@ -41,7 +43,7 @@ export function ExportPanel({ recordedVoice, tracks }: ExportPanelProps) {
     try {
       const blob = await renderAudioPostcard({
         voiceBlob: queuedVoice.blob,
-        tracks,
+        tracks: selectedTracks,
         durationLimitSeconds: CLASSROOM_DURATION_CAP_SECONDS,
       });
 
@@ -56,11 +58,49 @@ export function ExportPanel({ recordedVoice, tracks }: ExportPanelProps) {
       }
       setStatus("error");
     }
-  }, [recordedVoice, support.canMixOffline, tracks]);
+  }, [recordedVoice, selectedTracks, support.canMixOffline]);
 
   return (
     <section className="export-panel panel-card" aria-labelledby="export-title">
       <h2 id="export-title">오디오 엽서 저장</h2>
+      <div className="export-result-card">
+        <h3 className="export-result-title">결과 카드</h3>
+        <p className="export-result-line">
+          <span className="export-result-label">동시 제목</span>
+          <span>{poemTitle.trim() ? poemTitle : "제목이 비어있습니다."}</span>
+        </p>
+        <div className="export-result-field">
+          <span className="export-result-label" id="selected-sound-list-label">
+            선택 소리
+          </span>
+          {selectedTracks.length > 0 ? (
+            <ul className="export-result-list" aria-labelledby="selected-sound-list-label">
+              {selectedTracks.map((track) => (
+                <li key={track.id}>{track.label}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="export-result-empty" aria-labelledby="selected-sound-list-label">
+              아직 소리를 선택하지 않았습니다.
+            </p>
+          )}
+        </div>
+        <label htmlFor="reflection-note" className="export-result-label">
+          한 줄 성찰
+        </label>
+        <textarea
+          id="reflection-note"
+          className="export-reflection"
+          value={reflection}
+          onChange={(event) => setReflection(event.target.value)}
+          rows={1}
+          maxLength={120}
+          placeholder="수업에서 느낀 점을 한 줄로 적어보세요."
+        />
+        <p className="export-format-hint">
+          저장 안내: 파일 형식 WAV, 파일명은 poetry-bgm-studio-YYYYMMDD-HHMMSS.wav
+        </p>
+      </div>
       <button
         type="button"
         className="studio-action"

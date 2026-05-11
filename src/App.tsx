@@ -192,7 +192,11 @@ export default function App() {
           tracks={SOUND_TRACKS}
           selectedTrackIds={selectedTrackIds}
         />
-        <ExportPanel recordedVoice={recordedVoice} tracks={selectedTracks} />
+        <ExportPanel
+          recordedVoice={recordedVoice}
+          poemTitle={poemTitle}
+          selectedTracks={selectedTracks}
+        />
       </section>
     </main>
   );

@@ -77,7 +77,13 @@ describe("ExportPanel", () => {
 
     vi.mocked(renderAudioPostcard).mockResolvedValue(new Blob(["export"], { type: "audio/wav" }));
 
-    render(<ExportPanel recordedVoice={recordedVoice} tracks={[track]} />);
+    render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
 
     await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
 
@@ -87,6 +93,36 @@ describe("ExportPanel", () => {
       durationLimitSeconds: 180,
     });
     expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), "poetry-bgm-studio.wav");
+  });
+
+  it("shows poem title, selected sounds, and reflection input in the result card", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="겨울 종달새"
+        selectedTracks={[track]}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "결과 카드" })).toBeInTheDocument();
+    expect(screen.getByText("동시 제목")).toBeInTheDocument();
+    expect(screen.getByText("겨울 종달새")).toBeInTheDocument();
+    expect(screen.getByText("선택 소리")).toBeInTheDocument();
+    expect(screen.getByText("빗소리")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("한 줄 성찰"),
+    ).toHaveAttribute("placeholder", "수업에서 느낀 점을 한 줄로 적어보세요.");
+    expect(screen.getByText(/저장 안내: 파일 형식 WAV/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/poetry-bgm-studio-YYYYMMDD-HHMMSS\.wav/),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByRole("textbox", { name: "한 줄 성찰" }), "목소리 톤을 더 부드럽게 바꿨더라.");
+    expect(screen.getByRole("textbox", { name: "한 줄 성찰" })).toHaveValue(
+      "목소리 톤을 더 부드럽게 바꿨더라.",
+    );
   });
 
   it("disables export and shows a clear browser support message without OfflineAudioContext", async () => {
@@ -99,7 +135,13 @@ describe("ExportPanel", () => {
       missing: ["오디오 재생 API", "오디오 저장 API"],
     });
 
-    render(<ExportPanel recordedVoice={recordedVoice} tracks={[track]} />);
+    render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
 
     const exportButton = screen.getByRole("button", { name: "오디오 엽서 저장" });
     expect(exportButton).toBeDisabled();
@@ -120,14 +162,26 @@ describe("ExportPanel", () => {
 
     vi.mocked(renderAudioPostcard).mockReturnValue(deferred.promise);
 
-    const { rerender } = render(<ExportPanel recordedVoice={recordedVoice} tracks={[track]} />);
+    const { rerender } = render(
+      <ExportPanel
+        recordedVoice={recordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
     await user.click(screen.getByRole("button", { name: "오디오 엽서 저장" }));
 
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent("오디오 엽서를 만들고 있습니다.");
     });
 
-    rerender(<ExportPanel recordedVoice={secondRecordedVoice} tracks={[track]} />);
+    rerender(
+      <ExportPanel
+        recordedVoice={secondRecordedVoice}
+        poemTitle="봄은 노래"
+        selectedTracks={[track]}
+      />,
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent("");
