@@ -226,7 +226,14 @@ button {
 .sound-grid {
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sound-palette-guidance,
+.sound-palette-status {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .studio-action,
@@ -264,6 +271,10 @@ button {
 .sound-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.sound-button:disabled {
+  background: #f8fafc;
 }
 
 .studio-action.primary {
@@ -385,6 +396,10 @@ button {
 @media (max-width: 960px) {
   .studio-layout {
     grid-template-columns: 1fr;
+  }
+
+  .sound-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .studio-shell {

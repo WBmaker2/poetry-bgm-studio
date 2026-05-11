@@ -178,13 +178,39 @@ describe("Poetry & BGM Studio", () => {
     expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeInTheDocument();
   });
 
-  it("renders all four sound buttons", () => {
+  it("renders all eight sound buttons", () => {
     render(<App />);
 
     expect(screen.getByRole("button", { name: /빗소리/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /잔잔한 피아노/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /파도 소리/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /새소리/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /시냇물 소리/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /바람 소리/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /오르골/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /종소리/ })).toBeInTheDocument();
+  });
+
+  it("limits the sound palette to two selected sounds", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const rainButton = screen.getByRole("button", { name: /빗소리/ });
+    const pianoButton = screen.getByRole("button", { name: /잔잔한 피아노/ });
+    const wavesButton = screen.getByRole("button", { name: /파도 소리/ });
+
+    await user.click(rainButton);
+    await user.click(pianoButton);
+
+    expect(rainButton).toHaveAttribute("aria-pressed", "true");
+    expect(pianoButton).toHaveAttribute("aria-pressed", "true");
+    expect(wavesButton).toBeDisabled();
+    expect(screen.getByText(/현재 2개 선택되었습니다/)).toBeInTheDocument();
+
+    await user.click(rainButton);
+
+    expect(wavesButton).not.toBeDisabled();
+    expect(rainButton).toHaveAttribute("aria-pressed", "false");
   });
 
   it("revokes the latest object URL when App unmounts", async () => {

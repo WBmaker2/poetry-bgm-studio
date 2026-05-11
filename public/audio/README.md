@@ -8,5 +8,9 @@
 - `piano.wav`
 - `waves.wav`
 - `birds.wav`
+- `stream.wav`
+- `wind.wav`
+- `music-box.wav`
+- `bell.wav`
 
 오디오 파일은 학생 목소리보다 작게 믹싱됩니다. 너무 큰 파일을 넣을 경우 앱 로딩과 최종 WAV 저장 시간이 길어질 수 있습니다.

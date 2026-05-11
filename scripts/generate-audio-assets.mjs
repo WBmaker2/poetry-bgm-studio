@@ -142,6 +142,73 @@ function generateBirdsTone() {
   return samples;
 }
 
+function generateStreamTone() {
+  const noise = lcg(0x87c5a1d3);
+  const samples = new Array(TOTAL_SAMPLES);
+  for (let i = 0; i < TOTAL_SAMPLES; i += 1) {
+    const t = i / SAMPLE_RATE;
+    const ripple = (Math.sin(TWOPI * 7.5 * t) + 1) * 0.5;
+    const lowFlow = Math.sin(TWOPI * 196 * t) * 0.08;
+    const sparkle = Math.sin(TWOPI * (880 + 120 * Math.sin(TWOPI * 1.2 * t)) * t) * 0.05;
+    const shimmer = Math.sin(TWOPI * (1320 + 60 * Math.sin(TWOPI * 0.7 * t)) * t) * 0.04;
+    const waterNoise = noise() * 0.13 * (0.35 + ripple ** 2);
+    samples[i] = (lowFlow + sparkle + shimmer + waterNoise) * (0.75 + 0.15 * Math.sin(TWOPI * 0.45 * t));
+  }
+  applyLoopFade(samples);
+  return samples;
+}
+
+function generateWindTone() {
+  const noise = lcg(0x34cf8a12);
+  const samples = new Array(TOTAL_SAMPLES);
+  for (let i = 0; i < TOTAL_SAMPLES; i += 1) {
+    const t = i / SAMPLE_RATE;
+    const gust = (2 + Math.sin(TWOPI * 0.18 * t) + Math.sin(TWOPI * 0.31 * t)) / 4;
+    const low = Math.sin(TWOPI * 110 * t) * 0.08;
+    const breath = Math.sin(TWOPI * 220 * t) * 0.04;
+    const air = noise() * 0.22;
+    samples[i] = (low + breath + air) * (0.45 + gust * 0.55);
+  }
+  applyLoopFade(samples);
+  return samples;
+}
+
+function generateMusicBoxTone() {
+  const notes = [659.255, 783.991, 880, 987.767, 783.991, 659.255];
+  const noteLength = 0.48;
+  const samples = new Array(TOTAL_SAMPLES);
+  for (let i = 0; i < TOTAL_SAMPLES; i += 1) {
+    const t = i / SAMPLE_RATE;
+    const noteIndex = Math.floor(t / noteLength) % notes.length;
+    const localTime = t % noteLength;
+    const frequency = notes[noteIndex];
+    const attack = Math.min(1, localTime / 0.03);
+    const decay = Math.exp(-localTime * 5.2);
+    const envelope = attack * decay;
+    const tone = Math.sin(TWOPI * frequency * t) * 0.36;
+    const overtone = Math.sin(TWOPI * frequency * 2 * t) * 0.12;
+    const tinyDetune = Math.sin(TWOPI * (frequency + 2.5) * t) * 0.06;
+    samples[i] = (tone + overtone + tinyDetune) * envelope * 0.42;
+  }
+  applyLoopFade(samples);
+  return samples;
+}
+
+function generateBellTone() {
+  const samples = new Array(TOTAL_SAMPLES);
+  for (let i = 0; i < TOTAL_SAMPLES; i += 1) {
+    const t = i / SAMPLE_RATE;
+    const localTime = t % 1.2;
+    const envelope = Math.exp(-localTime * 4.4) * Math.min(1, localTime / 0.015);
+    const fundamental = Math.sin(TWOPI * 880 * t) * 0.24;
+    const fifth = Math.sin(TWOPI * 1320 * t) * 0.12;
+    const bright = Math.sin(TWOPI * 1760 * t) * 0.08;
+    samples[i] = (fundamental + fifth + bright) * envelope * 0.48;
+  }
+  applyLoopFade(samples);
+  return samples;
+}
+
 function writeTrack(fileName, sampleGenerator) {
   const samples = sampleGenerator();
   const wavBuffer = writeWav(samples);
@@ -155,7 +222,22 @@ function main() {
   writeTrack("piano.wav", generatePianoTone);
   writeTrack("waves.wav", generateWavesTone);
   writeTrack("birds.wav", generateBirdsTone);
-  console.log(`Generated WAV assets: ${["rain", "piano", "waves", "birds"].join(", ")} in ${OUTPUT_DIR}`);
+  writeTrack("stream.wav", generateStreamTone);
+  writeTrack("wind.wav", generateWindTone);
+  writeTrack("music-box.wav", generateMusicBoxTone);
+  writeTrack("bell.wav", generateBellTone);
+  console.log(
+    `Generated WAV assets: ${[
+      "rain",
+      "piano",
+      "waves",
+      "birds",
+      "stream",
+      "wind",
+      "music-box",
+      "bell",
+    ].join(", ")} in ${OUTPUT_DIR}`,
+  );
 }
 
 main();

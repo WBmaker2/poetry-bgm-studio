@@ -4,7 +4,7 @@ import { PreviewMixer } from "./components/PreviewMixer";
 import { SoundPalette } from "./components/SoundPalette";
 import { RecorderPanel } from "./components/RecorderPanel";
 import { MicrophoneCheckPanel } from "./components/MicrophoneCheckPanel";
-import { SOUND_TRACKS } from "./data/soundPalette";
+import { MAX_SELECTED_SOUND_TRACKS, SOUND_TRACKS } from "./data/soundPalette";
 import { type RecordedVoice } from "./lib/recorder";
 import "./styles.css";
 import type { SoundTrack } from "./data/soundPalette";
@@ -13,6 +13,7 @@ export default function App() {
   const [recordedVoice, setRecordedVoice] = useState<RecordedVoice | null>(null);
   const [poemTitle, setPoemTitle] = useState("");
   const [selectedTrackIds, setSelectedTrackIds] = useState<SoundTrack["id"][]>([]);
+  const [soundPaletteMessage, setSoundPaletteMessage] = useState("");
   const [isMicrophoneCheckActive, setIsMicrophoneCheckActive] = useState(false);
   const [isRecorderBusy, setIsRecorderBusy] = useState(false);
   const normalizedTitle = poemTitle.trim();
@@ -39,14 +40,29 @@ export default function App() {
   );
 
   const handleToggleTrack = useCallback((trackId: SoundTrack["id"]) => {
-    setSelectedTrackIds((previousTrackIds) => {
-      if (previousTrackIds.includes(trackId)) {
-        return previousTrackIds.filter((id) => id !== trackId);
-      }
+    const trackLabel = SOUND_TRACKS.find((track) => track.id === trackId)?.label ?? "소리";
 
-      return [...previousTrackIds, trackId];
-    });
-  }, []);
+    if (selectedTrackIds.includes(trackId)) {
+      setSelectedTrackIds(selectedTrackIds.filter((id) => id !== trackId));
+      setSoundPaletteMessage(`${trackLabel} 선택을 해제했습니다.`);
+      return;
+    }
+
+    if (selectedTrackIds.length >= MAX_SELECTED_SOUND_TRACKS) {
+      setSoundPaletteMessage(
+        `배경 사운드는 최대 ${MAX_SELECTED_SOUND_TRACKS}개까지 선택할 수 있습니다. 선택한 소리를 먼저 해제해 주세요.`,
+      );
+      return;
+    }
+
+    const nextSelectedCount = selectedTrackIds.length + 1;
+    const limitHint =
+      nextSelectedCount >= MAX_SELECTED_SOUND_TRACKS
+        ? " 다른 소리를 고르려면 선택한 소리를 먼저 해제하세요."
+        : "";
+    setSelectedTrackIds([...selectedTrackIds, trackId]);
+    setSoundPaletteMessage(`${trackLabel} 선택됨. 현재 ${nextSelectedCount}개 선택되었습니다.${limitHint}`);
+  }, [selectedTrackIds]);
 
   const handleRecordingComplete = useCallback((voice: RecordedVoice) => {
     setRecordedVoice((previousVoice) => {
@@ -65,6 +81,7 @@ export default function App() {
       return null;
     });
     setSelectedTrackIds([]);
+    setSoundPaletteMessage("");
   }, []);
 
   useEffect(() => {
@@ -160,6 +177,9 @@ export default function App() {
               <li>조용하고 차분한 시 → 빗소리, 새소리</li>
               <li>기쁨과 포근한 분위기 → 잔잔한 피아노</li>
               <li>떠남·그리움 느낌 → 파도 소리</li>
+              <li>맑은 흐름과 움직임 → 시냇물 소리</li>
+              <li>계절감과 쓸쓸함 → 바람 소리</li>
+              <li>추억과 반짝이는 마무리 → 오르골, 종소리</li>
             </ul>
           </section>
 
@@ -186,7 +206,13 @@ export default function App() {
         <h2 id="studio-bottom-title" className="sr-only">
           사운드 선택, 미리듣기, 저장
         </h2>
-        <SoundPalette tracks={SOUND_TRACKS} selectedTrackIds={selectedTrackIds} onToggleTrack={handleToggleTrack} />
+        <SoundPalette
+          tracks={SOUND_TRACKS}
+          selectedTrackIds={selectedTrackIds}
+          maxSelected={MAX_SELECTED_SOUND_TRACKS}
+          statusMessage={soundPaletteMessage}
+          onToggleTrack={handleToggleTrack}
+        />
         <PreviewMixer
           recordedVoice={recordedVoice}
           tracks={SOUND_TRACKS}
