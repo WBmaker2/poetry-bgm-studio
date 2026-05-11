@@ -17,9 +17,11 @@ vi.mock("./components/RecorderPanel", () => ({
     isMicrophoneCheckActive,
     onBusyChange,
     onRecordingComplete,
+    onClearRecording,
   }: {
     isMicrophoneCheckActive?: boolean;
     onBusyChange?: (isBusy: boolean) => void;
+    onClearRecording?: () => void;
     onRecordingComplete: (voice: RecordedVoice) => void;
   }) => (
     <div>
@@ -41,6 +43,9 @@ vi.mock("./components/RecorderPanel", () => ({
         }
       >
         낭송 완료
+      </button>
+      <button type="button" onClick={onClearRecording}>
+        녹음 초기화
       </button>
     </div>
   ),
@@ -122,6 +127,37 @@ describe("Poetry & BGM Studio", () => {
 
     const stepNav = screen.getByRole("region", { name: "수업 모드 단계" });
     expect(within(stepNav).getByRole("listitem", { name: "3. 소리 선택" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "4. 미리듣기/저장" })).not.toHaveAttribute("aria-current", "step");
+  });
+
+  it("returns to step 1 when the poem title is cleared", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const poemTitleInput = screen.getByRole("textbox", { name: "동시 제목" });
+    await user.type(poemTitleInput, "가을의 노래");
+
+    const stepNav = screen.getByRole("region", { name: "수업 모드 단계" });
+    expect(within(stepNav).getByRole("listitem", { name: "2. 녹음" })).toHaveAttribute("aria-current", "step");
+
+    await user.clear(poemTitleInput);
+
+    expect(within(stepNav).getByRole("listitem", { name: "1. 제목 입력" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "2. 녹음" })).not.toHaveAttribute("aria-current", "step");
+  });
+
+  it("moves to step 2 when the recording is cleared", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox", { name: "동시 제목" }), "밤하늘 아래");
+    await user.click(screen.getByRole("button", { name: "낭송 완료" }));
+    await user.click(screen.getByRole("button", { name: /빗소리/ }));
+    await user.click(screen.getByRole("button", { name: /녹음 초기화/ }));
+
+    const stepNav = screen.getByRole("region", { name: "수업 모드 단계" });
+    expect(within(stepNav).getByRole("listitem", { name: "2. 녹음" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "3. 소리 선택" })).not.toHaveAttribute("aria-current", "step");
     expect(within(stepNav).getByRole("listitem", { name: "4. 미리듣기/저장" })).not.toHaveAttribute("aria-current", "step");
   });
 
