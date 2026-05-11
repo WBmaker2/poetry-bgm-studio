@@ -95,5 +95,5 @@
 ---
 
 ## 관련 문서
-- [교사용 가이드](docs/teacher-guide.md)
+- [교사용 가이드](teacher-guide.md)
 - [실기기 마이크 점검 체크리스트](qa/real-device-microphone-check.md)
