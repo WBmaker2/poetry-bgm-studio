@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
@@ -61,6 +61,53 @@ describe("Poetry & BGM Studio", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "낭송 녹음 시작" })).toBeInTheDocument();
+  });
+
+  it("shows classroom step 1 by default before title is entered", () => {
+    render(<App />);
+
+    const stepNav = screen.getByRole("navigation", { name: "수업 모드 단계" });
+    expect(within(stepNav).getByRole("listitem", { name: "1. 제목 입력" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "2. 녹음" })).not.toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "3. 소리 선택" })).not.toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "4. 미리듣기/저장" })).not.toHaveAttribute("aria-current", "step");
+  });
+
+  it("updates to step 2 after 제목 입력", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const poemTitle = screen.getByRole("textbox", { name: "동시 제목" });
+    await user.type(poemTitle, "봄이 오는 날");
+
+    const stepNav = screen.getByRole("navigation", { name: "수업 모드 단계" });
+    expect(within(stepNav).getByRole("listitem", { name: "2. 녹음" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "1. 제목 입력" })).not.toHaveAttribute("aria-current", "step");
+  });
+
+  it("updates to step 3 after recording completes", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox", { name: "동시 제목" }), "밤하늘");
+    await user.click(screen.getByRole("button", { name: "낭송 완료" }));
+
+    const stepNav = screen.getByRole("navigation", { name: "수업 모드 단계" });
+    expect(within(stepNav).getByRole("listitem", { name: "3. 소리 선택" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "2. 녹음" })).not.toHaveAttribute("aria-current", "step");
+  });
+
+  it("updates to step 4 when a sound is selected", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByRole("textbox", { name: "동시 제목" }), "우산 속 이야기");
+    await user.click(screen.getByRole("button", { name: "낭송 완료" }));
+    await user.click(screen.getByRole("button", { name: /빗소리/ }));
+
+    const stepNav = screen.getByRole("navigation", { name: "수업 모드 단계" });
+    expect(within(stepNav).getByRole("listitem", { name: "4. 미리듣기/저장" })).toHaveAttribute("aria-current", "step");
+    expect(within(stepNav).getByRole("listitem", { name: "3. 소리 선택" })).not.toHaveAttribute("aria-current", "step");
   });
 
   it("shows curriculum standards and local privacy note", () => {

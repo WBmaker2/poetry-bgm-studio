@@ -11,10 +11,25 @@ import type { SoundTrack } from "./data/soundPalette";
 
 export default function App() {
   const [recordedVoice, setRecordedVoice] = useState<RecordedVoice | null>(null);
-  const [poemTitle, setPoemTitle] = useState("이번 주 동시");
+  const [poemTitle, setPoemTitle] = useState("");
   const [selectedTrackIds, setSelectedTrackIds] = useState<SoundTrack["id"][]>([]);
   const [isMicrophoneCheckActive, setIsMicrophoneCheckActive] = useState(false);
   const [isRecorderBusy, setIsRecorderBusy] = useState(false);
+  const normalizedTitle = poemTitle.trim();
+
+  const currentStep = !normalizedTitle
+    ? 1
+    : recordedVoice
+      ? selectedTrackIds.length > 0
+        ? 4
+        : 3
+      : 2;
+  const stepSequence = [
+    { id: 1, label: "제목 입력" },
+    { id: 2, label: "녹음" },
+    { id: 3, label: "소리 선택" },
+    { id: 4, label: "미리듣기/저장" },
+  ];
 
   const selectedTracks = useMemo(
     () => SOUND_TRACKS.filter((track) => selectedTrackIds.includes(track.id)),
@@ -75,6 +90,29 @@ export default function App() {
         <p className="studio-privacy">
           녹음 파일은 이 브라우저 안에서만 처리됩니다. 업로드 없이 오디오 파일로 저장해 공유할 수 있습니다.
         </p>
+        <nav className="classroom-flow" aria-label="수업 모드 단계">
+          <ol className="classroom-step-list">
+            {stepSequence.map(({ id, label }) => {
+              const isCurrent = currentStep === id;
+              const isReached = currentStep >= id;
+
+              return (
+                <li
+                  key={id}
+                  aria-label={`${id}. ${label}`}
+                  aria-current={isCurrent ? "step" : undefined}
+                  className={`classroom-step ${isReached ? "reached" : ""} ${isCurrent ? "is-current" : ""}`}
+                >
+                  <span className="classroom-step-index">{id}.</span>
+                  <span>{label}</span>
+                </li>
+              );
+            })}
+          </ol>
+          <p className="classroom-step-hint sr-only" role="status" aria-live="polite">
+            현재 단계: {currentStep}단계 {currentStep === 1 ? "제목 입력" : currentStep === 2 ? "녹음" : currentStep === 3 ? "소리 선택" : "미리듣기/저장"}
+          </p>
+        </nav>
       </header>
 
       <div className="studio-layout">
